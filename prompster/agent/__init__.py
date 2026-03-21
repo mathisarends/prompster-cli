@@ -1,3 +1,3 @@
-from .service import HitsterAgent
+from .service import Agent
 
-__all__ = ["HitsterAgent"]
+__all__ = ["Agent"]

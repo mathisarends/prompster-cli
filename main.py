@@ -1,38 +1,37 @@
 import asyncio
 
-from llmify import ChatOpenAI
 from dotenv import load_dotenv
+from llmify import ChatOpenAI
 
-from prompster.agent import HitsterAgent
+from prompster.agent import Agent
 
 load_dotenv()
 
-
 SYSTEM_PROMPT = """
-You are a Hitster card generator. Given a theme or playlist, search Spotify
-for matching tracks and return a list of Hitster cards (song, artist, year).
-Always call 'search_spotify' or 'get_playlist_tracks' first, then summarize the result.
+You are a Hitster card generator assistant. Your job is to understand what the
+user wants, ask clarifying questions if needed, and then generate Hitster cards
+using the available tools.
+
+When you have enough information, call 'search_spotify' or 'get_playlist_tracks'
+and return the result as a list of Hitster cards (song, artist, year).
 """
 
 MOCK_TRACKS = [
     ("Alles nur geliehen", "Die Toten Hosen", 1994),
-    ("Sonne", "Rammstein", 2001),
-    ("Nur geträumt", "Nena", 1983),
-    ("Atemlos durch die Nacht", "Helene Fischer", 2013),
-    ("Du hast", "Rammstein", 1997),
+    ("Westerland", "Die Ärzte", 1990),
     ("99 Luftballons", "Nena", 1983),
+    ("Du hast", "Rammstein", 1997),
     ("Schrei", "Tokio Hotel", 2005),
     ("Major Tom", "Peter Schilling", 1982),
+    ("Nur geträumt", "Nena", 1983),
+    ("Atemlos durch die Nacht", "Helene Fischer", 2013),
     ("Rammstein", "Rammstein", 1995),
-    ("Westerland", "Die Ärzte", 1990),
+    ("Hier kommt Alex", "Die Toten Hosen", 1988),
 ]
 
 
-def build_agent() -> HitsterAgent:
-    agent = HitsterAgent(
-        llm=ChatOpenAI(model="gpt-4o"),
-        system_prompt=SYSTEM_PROMPT,
-    )
+def build_agent() -> Agent:
+    agent = Agent(llm=ChatOpenAI(model="gpt-4o"), system_prompt=SYSTEM_PROMPT)
 
     @agent.tools.register(
         name="search_spotify",
@@ -47,9 +46,9 @@ def build_agent() -> HitsterAgent:
         },
     )
     async def search_spotify(query: str, limit: int = 20) -> str:
+        print(f"\n  [tool] search_spotify(query={query!r}, limit={limit})")
         return "\n".join(
-            f"{name} — {artist} ({year})"
-            for name, artist, year in MOCK_TRACKS[:limit]
+            f"{name} — {artist} ({year})" for name, artist, year in MOCK_TRACKS[:limit]
         )
 
     @agent.tools.register(
@@ -64,9 +63,9 @@ def build_agent() -> HitsterAgent:
         },
     )
     async def get_playlist_tracks(playlist_id: str) -> str:
+        print(f"\n  [tool] get_playlist_tracks(playlist_id={playlist_id!r})")
         return "\n".join(
-            f"{name} — {artist} ({year})"
-            for name, artist, year in MOCK_TRACKS
+            f"{name} — {artist} ({year})" for name, artist, year in MOCK_TRACKS
         )
 
     return agent
@@ -75,12 +74,39 @@ def build_agent() -> HitsterAgent:
 async def main() -> None:
     agent = build_agent()
 
-    result = await agent.run("Generate 10 Hitster cards for 90s German pop music")
+    print()
+    print("  ██╗  ██╗██╗████████╗███████╗████████╗███████╗██████╗ ")
+    print("  ██║  ██║██║╚══██╔══╝██╔════╝╚══██╔══╝██╔════╝██╔══██╗")
+    print("  ███████║██║   ██║   ███████╗   ██║   █████╗  ██████╔╝")
+    print("  ██╔══██║██║   ██║   ╚════██║   ██║   ██╔══╝  ██╔══██╗")
+    print("  ██║  ██║██║   ██║   ███████║   ██║   ███████╗██║  ██║")
+    print("  ╚═╝  ╚═╝╚═╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝")
+    print()
+    print("  Card Generator — describe your game and I'll build a plan.")
+    print("  Type 'exit' to quit.\n")
 
-    if result.success:
-        print(result.message)
-    else:
-        print(f"Agent failed after {len(result.tool_calls_made)} tool calls: {result.message}")
+    async with agent:
+        while True:
+            try:
+                user_input = input("  You › ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n\n  Bye!\n")
+                break
+
+            if not user_input:
+                continue
+
+            if user_input.lower() in {"exit", "quit", "q"}:
+                print("\n  Bye!\n")
+                break
+
+            print()
+            print("  Assistant › ", end="", flush=True)
+
+            async for chunk in await agent.stream(user_input):
+                print(chunk, end="", flush=True)
+
+            print("\n")
 
 
 if __name__ == "__main__":
