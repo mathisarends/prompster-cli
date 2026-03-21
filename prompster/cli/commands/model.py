@@ -2,7 +2,7 @@ import click
 import questionary
 from questionary import Style
 
-from prompster.cli.config import DEFAULT_MODEL, MODELS, get_model, set_model
+from prompster.cli.config import MODELS, get_model, set_model
 
 STYLE = Style([
     ("qmark", "fg:magenta bold"),
@@ -19,9 +19,8 @@ def _format_choice(model_id: str) -> str:
     return f"{info['name']}  ({info['provider']} — {info['description']})"
 
 
-@click.command()
-def model() -> None:
-    """Switch the AI model used for card generation."""
+def run_model() -> None:
+    """Interactive model switcher."""
     current = get_model()
     current_info = MODELS.get(current, {})
 
@@ -37,7 +36,6 @@ def model() -> None:
         questionary.Choice(
             title=_format_choice(mid),
             value=mid,
-            checked=(mid == current),
         )
         for mid in MODELS
     ]

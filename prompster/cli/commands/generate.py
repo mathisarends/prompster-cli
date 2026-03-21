@@ -26,9 +26,8 @@ STYLE = Style([
 ])
 
 
-@click.command()
-def generate() -> None:
-    """Generate a custom Hitster card deck."""
+def run_generate() -> None:
+    """Interactive card generation wizard."""
     model_id = get_model()
     model_info = MODELS.get(model_id, {})
 
@@ -36,8 +35,8 @@ def generate() -> None:
     click.echo(
         "  Using model: "
         + click.style(model_info.get("name", model_id), fg="green", bold=True)
-        + click.style(f"  (change with ", fg="bright_black")
-        + click.style("prompster model", fg="yellow")
+        + click.style("  (change with ", fg="bright_black")
+        + click.style("/model", fg="yellow")
         + click.style(")", fg="bright_black")
     )
 
