@@ -202,12 +202,13 @@ wheels = [
 ]
 
 [[package]]
-name = "prompster-cli"
+name = "prompster"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "click" },
     { name = "py-llmify" },
+    { name = "pydantic" },
     { name = "python-dotenv" },
     { name = "spotifyify" },
 ]
@@ -216,6 +217,7 @@ dependencies = [
 requires-dist = [
     { name = "click", specifier = ">=8.3.1" },
     { name = "py-llmify", specifier = ">=0.2.0" },
+    { name = "pydantic", specifier = ">=2.12.5" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "spotifyify", specifier = ">=0.1.0" },
 ]
