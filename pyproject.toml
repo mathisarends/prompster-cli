@@ -6,8 +6,20 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
     "click>=8.3.1",
-    "py-llmify>=0.2.0",
+    "py-llmify[all]>=0.3.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
+    "questionary>=2.1.1",
+    "rich-click>=1.9.7",
     "spotifyify>=0.1.0",
 ]
+
+[project.scripts]
+prompster = "prompster.cli.app:cli"
+
+[tool.uv]
+package = true
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
