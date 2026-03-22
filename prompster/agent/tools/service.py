@@ -16,8 +16,11 @@ class Tools:
 
     def tool(self, name: str, description: str, status: str | None = None) -> Callable:
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
-            self.register(Tool(name=name, description=description, fn=fn, status=status))
+            self.register(
+                Tool(name=name, description=description, fn=fn, status=status)
+            )
             return fn
+
         return decorator
 
     async def execute(self, name: str, args: dict) -> str:

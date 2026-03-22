@@ -45,14 +45,20 @@ class Agent:
                 return
 
             self._history.append(
-                AssistantMessage(content=response.completion, tool_calls=response.tool_calls)
+                AssistantMessage(
+                    content=response.completion, tool_calls=response.tool_calls
+                )
             )
 
             for call in response.tool_calls:
                 tool_args = json.loads(call.function.arguments)
-                logger.debug("Calling tool '%s' with args: %s", call.function.name, tool_args)
+                logger.debug(
+                    "Calling tool '%s' with args: %s", call.function.name, tool_args
+                )
                 result = await self.tools.execute(call.function.name, tool_args)
-                self._history.append(ToolResultMessage(tool_call_id=call.id, content=result))
+                self._history.append(
+                    ToolResultMessage(tool_call_id=call.id, content=result)
+                )
 
     def reset(self) -> None:
         self._history = [SystemMessage(content=self._system_prompt)]

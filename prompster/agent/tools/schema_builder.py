@@ -62,7 +62,9 @@ class ToolSchemaBuilder:
             return non_none[0] if len(non_none) == 1 else None
         return None
 
-    def _to_json_property(self, python_type: Any, description: str | None = None) -> dict:
+    def _to_json_property(
+        self, python_type: Any, description: str | None = None
+    ) -> dict:
         prop: dict[str, Any] = {}
         if description:
             prop["description"] = description

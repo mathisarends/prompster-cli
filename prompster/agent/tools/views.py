@@ -4,8 +4,15 @@ from typing import Any
 
 from prompster.agent.tools.schema_builder import ToolSchemaBuilder
 
+
 class Tool:
-    def __init__(self, name: str, description: str, fn: Callable[..., Any], status: str | None = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        description: str,
+        fn: Callable[..., Any],
+        status: str | None = None,
+    ) -> None:
         self.name = name
         self.description = description
         self.fn = fn

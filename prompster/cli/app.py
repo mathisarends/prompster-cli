@@ -6,7 +6,6 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
-
 BANNER = """\
 
   ██████╗ ██████╗  ██████╗ ███╗   ███╗██████╗ ███████╗████████╗███████╗██████╗
@@ -18,9 +17,9 @@ BANNER = """\
 """
 
 COMMANDS: dict[str, str] = {
-    "/model":    "Switch the AI model",
-    "/help":     "Show available commands",
-    "/exit":     "Exit Prompster",
+    "/model": "Switch the AI model",
+    "/help": "Show available commands",
+    "/exit": "Exit Prompster",
 }
 
 
@@ -28,7 +27,9 @@ def _print_welcome(console: Console) -> None:
     console.print(f"[magenta]{BANNER}[/magenta]")
 
     console.print("  [bold magenta]Prompster[/bold magenta]")
-    console.print(f"  [dim]Prompster uses AI. Check for mistakes.[/dim]  [dim]—  {'gpt-5.4-mini'}[/dim]")
+    console.print(
+        f"  [dim]Prompster uses AI. Check for mistakes.[/dim]  [dim]—  {'gpt-5.4-mini'}[/dim]"
+    )
     console.print()
 
     cwd = f"~/{Path.cwd().name}"
@@ -55,7 +56,7 @@ def _repl() -> None:
     while True:
         try:
             user_input = session.prompt(
-                HTML('<ansicyan><b>❯</b></ansicyan> '),
+                HTML("<ansicyan><b>❯</b></ansicyan> "),
                 placeholder=HTML(
                     '<style fg="ansidarkgray">Describe a Hitster theme…</style>'
                 ),
