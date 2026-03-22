@@ -22,23 +22,27 @@
 
 #set square(stroke: none)
 
-// ── color palette for card backs ──
-#let card_colors = (
-  rgb("#e91e63"),  // pink
-  rgb("#00bcd4"),  // cyan
-  rgb("#4caf50"),  // green
-  rgb("#ff9800"),  // orange
-  rgb("#9c27b0"),  // purple
-  rgb("#ffeb3b"),  // yellow
-  rgb("#2196f3"),  // blue
-  rgb("#ef5350"),  // red
-  rgb("#26a69a"),  // teal
-  rgb("#ab47bc"),  // violet
+// ── gradient pairs for card backs ──
+#let card_gradients = (
+  (rgb("#e91e63"), rgb("#f06292")),  // pink → light pink
+  (rgb("#00bcd4"), rgb("#4dd0e1")),  // cyan → light cyan
+  (rgb("#4caf50"), rgb("#81c784")),  // green → light green
+  (rgb("#ff9800"), rgb("#ffb74d")),  // orange → light orange
+  (rgb("#9c27b0"), rgb("#ce93d8")),  // purple → lavender
+  (rgb("#ffeb3b"), rgb("#fff176")),  // yellow → light yellow
+  (rgb("#2196f3"), rgb("#64b5f6")),  // blue → light blue
+  (rgb("#ef5350"), rgb("#ff8a80")),  // red → salmon
+  (rgb("#26a69a"), rgb("#80cbc4")),  // teal → light teal
+  (rgb("#ab47bc"), rgb("#e040fb")),  // violet → neon pink
 )
 
-// deterministic color pick based on song index
-#let pick_color(i) = {
-  card_colors.at(calc.rem(i * 7 + 3, card_colors.len()))
+#let gradient_angles = (135deg, 45deg, 160deg, 20deg, 110deg, 70deg, 150deg, 30deg, 140deg, 50deg)
+
+// deterministic gradient pick based on song index
+#let pick_gradient(i) = {
+  let pair = card_gradients.at(calc.rem(i * 7 + 3, card_gradients.len()))
+  let angle = gradient_angles.at(calc.rem(i * 3 + 1, gradient_angles.len()))
+  gradient.linear(pair.at(0), pair.at(1), angle: angle)
 }
 
 // ── front side: QR with vinyl rings ──
@@ -72,15 +76,12 @@
 
     // QR code center
     #align(center + horizon)[
-      #rect(
-        width: 55%,
-        height: 55%,
-        fill: white,
-        radius: 2pt,
-        stroke: 1.5pt + rgb("#c724b1"),
-      )[
-        #align(center + horizon)[
-          #image(song.qr_file, width: 90%)
+      #box(width: 0.5 * card_size, height: 0.5 * card_size)[
+        #place(top + left)[
+          #rect(width: 100%, height: 100%, fill: white)
+        ]
+        #place(top + left)[
+          #image(song.qr_file, width: 100%)
         ]
       ]
     ]
@@ -103,7 +104,7 @@
 
 // ── back side: colorful card with black text ──
 #let text_back_side(song, index) = {
-  let bg = pick_color(index)
+  let bg = pick_gradient(index)
 
   square(
     size: card_size,

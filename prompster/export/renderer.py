@@ -26,7 +26,7 @@ class DeckRenderer:
                 songs_data.append(
                     {
                         "title": track.title,
-                        "artist_names": track.artist_names,
+                        "artist_names": track.display_artists,
                         "release_year": track.release_year,
                         "qr_file": qr_file,
                     }
