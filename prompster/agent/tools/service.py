@@ -14,10 +14,17 @@ class Tools:
     def get(self, name: str) -> Tool | None:
         return self._tools.get(name)
 
-    def tool(self, name: str, description: str, status: str | None = None) -> Callable:
+    def tool(
+        self, description: str, name: str | None = None, status: str | None = None
+    ) -> Callable:
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
             self._register(
-                Tool(name=name, description=description, fn=fn, status=status)
+                Tool(
+                    name=name or fn.__name__,
+                    description=description,
+                    fn=fn,
+                    status=status,
+                )
             )
             return fn
 
