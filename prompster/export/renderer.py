@@ -1,76 +1,47 @@
 import asyncio
+import json
+import shutil
 import tempfile
 from pathlib import Path
 
 import typst
 
-from prompster.export.layout import merge_card_pdfs
-from prompster.spotify.schemas import SpotifyTrack
-
-_TEMPLATES = Path(__file__).parent / "templates"
-_FRONT_TEMPLATE = _TEMPLATES / "card_front.typ"
-_BACK_TEMPLATE = _TEMPLATES / "card_back.typ"
+from prompster.export.views import TrackCard
 
 
-def _compile_card(
-    template: Path,
-    inputs: dict[str, str],
-    output: Path,
-) -> None:
-    typst.compile(
-        str(template),
-        output=str(output),
-        inputs=inputs,
-    )
+class DeckRenderer:
+    _DECK_TEMPLATE = Path(__file__).parent / "templates" / "deck.typ"
 
+    async def render(self, tracks: list[TrackCard], output: Path) -> Path:
+        output.parent.mkdir(parents=True, exist_ok=True)
+        loop = asyncio.get_event_loop()
 
-async def render_deck(tracks: list[SpotifyTrack], output: Path) -> Path:
-    """
-    Render a Hitster deck PDF from a list of SpotifyTrack objects.
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
 
-    Each track produces two pages (front QR, back year+title+artist).
-    Returns the path to the merged output PDF.
-    """
-    output.parent.mkdir(parents=True, exist_ok=True)
+            songs_data = []
+            for i, track in enumerate(tracks):
+                qr_file = f"qr_{i}.svg"
+                (tmp_path / qr_file).write_bytes(track.qr_code_svg_bytes)
+                songs_data.append(
+                    {
+                        "title": track.title,
+                        "artist_names": track.artist_names,
+                        "release_year": track.release_year,
+                        "qr_file": qr_file,
+                    }
+                )
 
-    loop = asyncio.get_event_loop()
-    card_pdfs: list[tuple[Path, Path]] = []
+            (tmp_path / "songs.json").write_text(
+                json.dumps(songs_data, ensure_ascii=False), encoding="utf-8"
+            )
 
-    with tempfile.TemporaryDirectory() as tmp:
-        tmp_path = Path(tmp)
-
-        for i, track in enumerate(tracks):
-            idx = str(i + 1)
-
-            # Write QR code PNG
-            qr_path = tmp_path / f"qr_{i}.png"
-            qr_path.write_bytes(track.qr_code_png_bytes)
-
-            front_pdf = tmp_path / f"front_{i}.pdf"
-            back_pdf = tmp_path / f"back_{i}.pdf"
+            deck_typ = tmp_path / "deck.typ"
+            shutil.copy(self._DECK_TEMPLATE, deck_typ)
 
             await loop.run_in_executor(
                 None,
-                _compile_card,
-                _FRONT_TEMPLATE,
-                {"qr_path": str(qr_path), "card_index": idx},
-                front_pdf,
-            )
-            await loop.run_in_executor(
-                None,
-                _compile_card,
-                _BACK_TEMPLATE,
-                {
-                    "year": str(track.release_year),
-                    "title": track.title,
-                    "artist": track.artist_names,
-                    "card_index": idx,
-                },
-                back_pdf,
+                lambda: typst.compile(str(deck_typ), output=str(output)),
             )
 
-            card_pdfs.append((front_pdf, back_pdf))
-
-        await loop.run_in_executor(None, merge_card_pdfs, card_pdfs, output)
-
-    return output
+        return output

@@ -1,44 +1,17 @@
-// card_front.typ — Hitster card front: QR code only (player scans to hear the song)
-// Parameters injected via Typst CLI --input flags:
-//   qr_path   : path to the QR code PNG for this card
-//   card_index: 1-based card number (for back-reference)
-
-#let qr_path   = sys.inputs.at("qr_path",   default: "")
+#let qr_path    = sys.inputs.at("qr_path",    default: "")
 #let card_index = sys.inputs.at("card_index", default: "?")
 
-#set page(
-  width:  6.3cm,
-  height: 8.8cm,
-  margin: 0pt,
-)
+#set page(width: 6.3cm, height: 8.8cm, margin: 0pt)
 
-// Dark background
-#rect(
-  width:  100%,
-  height: 100%,
-  fill:   rgb("#0d0d1a"),
-)[
-  // Neon border
-  #rect(
-    width:  100%,
-    height: 100%,
-    stroke: 2pt + rgb("#c724b1"),
-    fill:   none,
-  )
+#rect(width: 100%, height: 100%, fill: rgb("#0d0d1a"))[
+  #rect(width: 100%, height: 100%, stroke: 2pt + rgb("#c724b1"), fill: none)
 
-  // Top label
   #align(center + top)[
     #pad(top: 10pt)[
-      #text(
-        fill:   rgb("#c724b1"),
-        size:   6pt,
-        weight: "bold",
-        tracking: 3pt,
-      )[HITSTER]
+      #text(fill: rgb("#c724b1"), size: 6pt, weight: "bold", tracking: 3pt)[HITSTER]
     ]
   ]
 
-  // QR code centered
   #align(center + horizon)[
     #if qr_path != "" {
       image(qr_path, width: 72%)
@@ -47,7 +20,6 @@
     }
   ]
 
-  // Bottom card index
   #align(center + bottom)[
     #pad(bottom: 8pt)[
       #text(fill: rgb("#555577"), size: 6pt)[#card_index]
