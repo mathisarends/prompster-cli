@@ -38,7 +38,8 @@ TRACKS = [
 
 
 async def main() -> None:
-    output = Path.cwd() / "test-deck.pdf"
+    output = Path.cwd() / "output" / "test-deck.pdf"
+    output.parent.mkdir(exist_ok=True)
     renderer = DeckRenderer()
     await renderer.render(TRACKS, output)
     print(f"✓ Generated {output} ({len(TRACKS)} cards)")

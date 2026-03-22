@@ -42,7 +42,10 @@ class Agent:
             response = await self._llm.invoke(self._history, tools=schema)
 
             if not response.tool_calls:
-                break
+                content = response.completion or ""
+                self._history.append(AssistantMessage(content=content))
+                yield content
+                return
 
             self._history.append(
                 AssistantMessage(content=None, tool_calls=response.tool_calls)
@@ -59,13 +62,6 @@ class Agent:
                 self._history.append(
                     ToolResultMessage(tool_call_id=call.id, content=result)
                 )
-
-        chunks: list[str] = []
-        async for chunk in self._llm.stream(self._history, tools=schema):
-            chunks.append(chunk)
-            yield chunk
-
-        self._history.append(AssistantMessage(content="".join(chunks)))
 
     def reset(self) -> None:
         self._history = [SystemMessage(content=self._system_prompt)]
