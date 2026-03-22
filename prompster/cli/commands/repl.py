@@ -6,6 +6,7 @@ from rich.console import Console
 
 from prompster.agent import Agent, Tools
 from prompster.agent.views import ToolCallEvent
+from prompster.spotify import SpotifyClient, SpotifyCredentials
 
 COMMANDS: dict[str, str] = {
     "/help": "Show available commands",
@@ -32,19 +33,70 @@ async def _handle_message(agent: Agent, user_input: str, console: Console) -> No
     console.print("\n")
 
 
+def _build_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
+    @tools.tool(
+        description="Search Spotify for tracks matching a query. Returns title, artist, year and URI for each result.",
+        status="Spotify durchsuchen",
+    )
+    async def search_tracks(query: str, limit: int = 10) -> str:
+        tracks = await client.search_tracks(query, limit=limit)
+        if not tracks:
+            return "No tracks found."
+        lines = [
+            f"{i + 1}. {t.title} – {t.artist_names} ({t.release_year})  uri={t.uri}"
+            for i, t in enumerate(tracks)
+        ]
+        return "\n".join(lines)
+
+    @tools.tool(
+        description="Create a Spotify playlist for the current user. Returns the playlist ID and URL.",
+        status="Playlist erstellen",
+    )
+    async def create_playlist(name: str, description: str = "") -> str:
+        playlist = await client.create_playlist(name, description=description)
+        return (
+            f"Created playlist '{playlist.name}' — id={playlist.id}  url={playlist.url}"
+        )
+
+    @tools.tool(
+        description="Add tracks to an existing Spotify playlist by playlist ID and a list of Spotify track URIs.",
+        status="Tracks zur Playlist hinzufügen",
+    )
+    async def add_tracks_to_playlist(playlist_id: str, track_uris: list[str]) -> str:
+        await client.add_tracks_to_playlist(playlist_id, track_uris)
+        return f"Added {len(track_uris)} track(s) to playlist {playlist_id}."
+
+    @tools.tool(
+        description="Get all tracks of an existing Spotify playlist. Returns title, artist, year and URI per track.",
+        status="Playlist-Tracks laden",
+    )
+    async def get_playlist_tracks(playlist_id: str) -> str:
+        tracks = await client.get_playlist_tracks(playlist_id)
+        if not tracks:
+            return "Playlist is empty."
+        lines = [
+            f"{i + 1}. {t.title} – {t.artist_names} ({t.release_year})  uri={t.uri}"
+            for i, t in enumerate(tracks)
+        ]
+        return "\n".join(lines)
+
+
 async def run_repl(console: Console) -> None:
     tools = Tools()
 
-    @tools.tool(description="Returns the current time.", status="Aktuelle Zeit abrufen")
-    async def get_current_time() -> str:
-        from datetime import datetime
-
-        return datetime.now().strftime("%H:%M:%S")
+    credentials = SpotifyCredentials()
+    spotify = SpotifyClient(credentials)
+    _build_spotify_tools(tools, spotify)
 
     llm = ChatOpenAI(model="gpt-4o-mini")
 
     agent = Agent(
-        instructions="You are a helpful assistant.",
+        instructions=(
+            "You are Prompster, a Hitster deck assistant. "
+            "Help the user build thematic Spotify playlists for Hitster card games. "
+            "Search for fitting tracks, propose a selection, create the playlist once confirmed, "
+            "and summarise the final deck with title, artist and year per card."
+        ),
         llm=llm,
         tools=tools,
     )

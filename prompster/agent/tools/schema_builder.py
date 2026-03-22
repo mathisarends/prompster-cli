@@ -75,7 +75,9 @@ class ToolSchemaBuilder:
 
         origin = get_origin(python_type)
         if origin is list or origin in self._COLLECTION_TYPES:
-            return {**prop, "type": "array"}
+            args = get_args(python_type)
+            item_type = args[0] if args else str
+            return {**prop, "type": "array", "items": self._to_json_property(item_type)}
         if origin is dict:
             return {**prop, "type": "object"}
 
