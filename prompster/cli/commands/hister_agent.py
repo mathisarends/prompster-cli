@@ -1,9 +1,10 @@
 from pathlib import Path
 
+import questionary
 from llmify import ChatOpenAI
 
 from prompster.agent import Agent, Tools
-from prompster.export import render_deck
+from prompster.export import DeckRenderer, TrackCard
 from prompster.spotify import SpotifyClient, SpotifyCredentials
 
 _INSTRUCTIONS = """\
@@ -11,13 +12,13 @@ You are Prompster, a creative assistant that helps users generate custom Hitster
 
 Hitster is a music quiz game where players guess the release year of songs. Each card has a song title, artist, year, and a QR code linking to the song on Spotify.
 
-Before generating any cards, gather the following — ask for one missing piece at a time:
+Before generating any cards, gather the following config:
 
-1. **Theme / Vibe** – What kind of music? (e.g. "90s Pop", "deutsche Hits", "Party Bangers", "Chill Indie"). Infer the mood/mode from this — don't ask separately.
-2. **Difficulty** – Easy (well-known hits), Medium (mix), Hard (deep cuts & B-sides)
-3. **Number of cards** – How many? (default: 30, max: 50) — ask this last.
+1. **Theme / Vibe** – Infer this from what the user tells you. If unclear, ask via free text in the conversation.
+2. **Difficulty** – call `ask_difficulty` to let the user pick from a list.
+3. **Number of cards** – call `ask_card_count` to let the user pick a number.
 
-Once you have all three, summarize the config and ask for confirmation before generating.
+Once you have all three values from the tools, summarize the config and ask for confirmation before generating.
 
 When generating cards:
 1. Use the Spotify tools to find matching tracks. Prefer tracks where the release year is clearly identifiable. Aim for variety in years unless the theme implies a specific era.
@@ -29,6 +30,33 @@ Always respond in the same language the user is writing in. Default to German.
 
 
 def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
+    @tools.tool(
+        description="Ask the user to pick a difficulty level. Returns one of: Easy, Medium, Hard.",
+        status="Schwierigkeitsgrad abfragen",
+    )
+    async def ask_difficulty() -> str:
+        result = await questionary.select(
+            "Schwierigkeitsgrad:",
+            choices=[
+                questionary.Choice("Easy – bekannte Hits", value="Easy"),
+                questionary.Choice("Medium – gemischte Auswahl", value="Medium"),
+                questionary.Choice("Hard – Deep Cuts & B-Seiten", value="Hard"),
+            ],
+        ).ask_async()
+        return result or "Medium"
+
+    @tools.tool(
+        description="Ask the user how many cards to generate. Returns the number as a string.",
+        status="Kartenanzahl abfragen",
+    )
+    async def ask_card_count() -> str:
+        result = await questionary.select(
+            "Wie viele Karten?",
+            choices=["15", "20", "30", "40", "50"],
+            default="30",
+        ).ask_async()
+        return result or "30"
+
     @tools.tool(
         description="Search Spotify for tracks matching a query. Returns title, artist, year and URI for each result.",
         status="Spotify durchsuchen",
@@ -83,9 +111,18 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
         tracks = await client.get_playlist_tracks(playlist_id)
         if not tracks:
             return "Playlist is empty — no cards generated."
+        cards = [
+            TrackCard(
+                title=t.title,
+                artist_names=t.artist_names,
+                release_year=t.release_year,
+                spotify_url=t.url,
+            )
+            for t in tracks
+        ]
         output = Path.cwd() / "hitster-deck.pdf"
-        await render_deck(tracks, output)
-        return f"Cards generated: {output}  ({len(tracks)} cards)"
+        await DeckRenderer().render(cards, output)
+        return f"Cards generated: {output}  ({len(cards)} cards)"
 
 
 def create_agent() -> Agent:
