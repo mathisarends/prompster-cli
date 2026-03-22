@@ -1,4 +1,4 @@
-#let songs = json("songs.json")
+#let songs = json.decode(sys.inputs.at("songs"))
 
 #let page_width = 210mm
 #let page_height = 297mm
@@ -15,115 +15,113 @@
   width: page_width,
   height: page_height,
   margin: (x: margin_x, y: margin_y),
-  fill: rgb("#06060e"),
+  fill: rgb("#0a0a0a"),
 )
 
 #set text(font: "New Computer Modern")
 
 #set square(stroke: none)
 
-// ── color palette ──
-#let bg_deep    = rgb("#06060e")
-#let bg_scan    = rgb("#0a0a18")
-#let neon_pink  = rgb("#c724b1")
-#let neon_light = rgb("#e040fb")
-#let text_light = rgb("#ccccdd")
+// ── color palette for card backs ──
+#let card_colors = (
+  rgb("#e91e63"),  // pink
+  rgb("#00bcd4"),  // cyan
+  rgb("#4caf50"),  // green
+  rgb("#ff9800"),  // orange
+  rgb("#9c27b0"),  // purple
+  rgb("#ffeb3b"),  // yellow
+  rgb("#2196f3"),  // blue
+  rgb("#ef5350"),  // red
+  rgb("#26a69a"),  // teal
+  rgb("#ab47bc"),  // violet
+)
 
-// ── shared: cyberpunk card base with scanlines, double border, corner accents ──
-#let cyber_card(body) = {
+// deterministic color pick based on song index
+#let pick_color(i) = {
+  card_colors.at(calc.rem(i * 7 + 3, card_colors.len()))
+}
+
+// ── front side: QR with vinyl rings ──
+#let qr_front_side(song) = {
   square(
     size: card_size,
-    fill: bg_deep,
+    fill: rgb("#0d0d0d"),
   )[
-    // scanlines
-    #place(top + left)[
-      #for i in range(25) {
-        place(
-          top + left,
-          dy: i * 0.2cm,
-          rect(
-            width: 100%,
-            height: 0.08cm,
-            fill: if calc.rem(i, 2) == 0 { bg_scan } else { bg_deep },
-          ),
-        )
-      }
-    ]
+    // concentric rings (vinyl/speaker look)
+    #for r in range(12, 0, step: -1) {
+      let ring_r = (r / 12) * 0.48 * card_size
+      let alpha = if calc.rem(r, 2) == 0 { 85% } else { 92% }
+      place(
+        center + horizon,
+        circle(
+          radius: ring_r,
+          stroke: 1.2pt + rgb("#e040fb").transparentize(alpha),
+          fill: none,
+        ),
+      )
+    }
 
-    // outer glow border
-    #place(top + left, dx: 2pt, dy: 2pt)[
-      #rect(
-        width: 100% - 4pt,
-        height: 100% - 4pt,
-        stroke: 0.7pt + neon_light.transparentize(60%),
+    // outer ring accent
+    #place(center + horizon)[
+      #circle(
+        radius: 0.48 * card_size,
+        stroke: 0.6pt + rgb("#c724b1").transparentize(50%),
         fill: none,
-        radius: 1.5pt,
       )
     ]
 
-    // inner neon border
-    #place(top + left, dx: 5pt, dy: 5pt)[
+    // QR code center
+    #align(center + horizon)[
       #rect(
-        width: 100% - 10pt,
-        height: 100% - 10pt,
-        stroke: 1.5pt + neon_pink,
+        width: 55%,
+        height: 55%,
+        fill: white,
+        radius: 2pt,
+        stroke: 1.5pt + rgb("#c724b1"),
+      )[
+        #align(center + horizon)[
+          #image(song.qr_file, width: 90%)
+        ]
+      ]
+    ]
+
+    // corner dots (subtle signature)
+    #place(top + left, dx: 4pt, dy: 4pt)[
+      #circle(radius: 1.5pt, fill: rgb("#e040fb").transparentize(40%))
+    ]
+    #place(top + right, dx: -7pt, dy: 4pt)[
+      #circle(radius: 1.5pt, fill: rgb("#e040fb").transparentize(40%))
+    ]
+    #place(bottom + left, dx: 4pt, dy: -7pt)[
+      #circle(radius: 1.5pt, fill: rgb("#e040fb").transparentize(40%))
+    ]
+    #place(bottom + right, dx: -7pt, dy: -7pt)[
+      #circle(radius: 1.5pt, fill: rgb("#e040fb").transparentize(40%))
+    ]
+  ]
+}
+
+// ── back side: colorful card with black text ──
+#let text_back_side(song, index) = {
+  let bg = pick_color(index)
+
+  square(
+    size: card_size,
+    fill: bg,
+  )[
+    // subtle inner border
+    #place(top + left, dx: 3pt, dy: 3pt)[
+      #rect(
+        width: 100% - 6pt,
+        height: 100% - 6pt,
+        stroke: 1pt + black.transparentize(70%),
         fill: none,
         radius: 1pt,
       )
     ]
 
-    // corner accents
-    #place(top + left, dx: 3pt, dy: 3pt)[
-      #rect(width: 4pt, height: 4pt, fill: neon_light)
-    ]
-    #place(top + right, dx: -7pt, dy: 3pt)[
-      #rect(width: 4pt, height: 4pt, fill: neon_light)
-    ]
-    #place(bottom + left, dx: 3pt, dy: -7pt)[
-      #rect(width: 4pt, height: 4pt, fill: neon_light)
-    ]
-    #place(bottom + right, dx: -7pt, dy: -7pt)[
-      #rect(width: 4pt, height: 4pt, fill: neon_light)
-    ]
-
-    #body
-  ]
-}
-
-// ── front side: QR code ──
-#let qr_front_side(song) = {
-  cyber_card()[
     #align(center + horizon)[
-      #box()[
-        #place(center + horizon)[
-          #rect(
-            width: 80% + 6pt,
-            height: 80% + 6pt,
-            fill: neon_pink.transparentize(88%),
-            radius: 2pt,
-          )
-        ]
-        #rect(
-          width: 80%,
-          height: 80%,
-          stroke: 1.2pt + neon_pink,
-          fill: white,
-          radius: 1.5pt,
-        )[
-          #align(center + horizon)[
-            #image(song.qr_file, width: 90%)
-          ]
-        ]
-      ]
-    ]
-  ]
-}
-
-// ── back side: artist / year / title ──
-#let text_back_side(song) = {
-  cyber_card()[
-    #align(center + horizon)[
-      #pad(left: 0.05 * card_size, right: 0.05 * card_size)[
+      #pad(left: 0.08 * card_size, right: 0.08 * card_size)[
         #stack(
           // artist
           block(
@@ -132,7 +130,7 @@
             align(
               center + horizon,
               text(
-                fill: white,
+                fill: black,
                 size: 0.06 * card_size,
                 weight: "bold",
               )[#str(song.artist_names)]
@@ -141,38 +139,25 @@
           // divider
           block(
             width: 100%,
-            align(center, rect(width: 60%, height: 0.8pt, fill: neon_pink)),
+            align(center, rect(width: 50%, height: 1pt, fill: black.transparentize(50%))),
           ),
           // year
           block(
-            height: 0.30 * card_size,
+            height: 0.32 * card_size,
             width: 100%,
             align(
               center + horizon,
-              box()[
-                #place(center + horizon)[
-                  #text(
-                    fill: neon_light.transparentize(80%),
-                    size: 0.30 * card_size,
-                    weight: "black",
-                  )[#str(song.release_year)]
-                ]
-                #text(
-                  fill: neon_light,
-                  size: 0.28 * card_size,
-                  weight: "black",
-                )[#str(song.release_year)]
-              ]
+              text(
+                fill: black,
+                size: 0.28 * card_size,
+                weight: "black",
+              )[#str(song.release_year)]
             ),
           ),
           // divider
           block(
             width: 100%,
-            align(center, stack(
-              spacing: 1pt,
-              rect(width: 50%, height: 1.5pt, fill: neon_pink),
-              rect(width: 50%, height: 0.4pt, fill: neon_light.transparentize(50%)),
-            )),
+            align(center, rect(width: 50%, height: 1pt, fill: black.transparentize(50%))),
           ),
           // title
           block(
@@ -181,7 +166,7 @@
             align(
               center + horizon,
               text(
-                fill: text_light,
+                fill: black,
                 size: 0.06 * card_size,
                 style: "italic",
               )[#song.title]
@@ -236,13 +221,15 @@
 #let get_pages(songs) = {
   let pages = ()
 
+  let idx = 0
   for page in songs.chunks(rows * cols) {
     let fronts = ()
     let backs = ()
 
     for song in page {
       fronts.push(qr_front_side(song))
-      backs.push(text_back_side(song))
+      backs.push(text_back_side(song, idx))
+      idx += 1
     }
 
     for _ in range(rows * cols - page.len()) {

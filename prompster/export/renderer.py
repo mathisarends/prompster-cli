@@ -32,16 +32,18 @@ class DeckRenderer:
                     }
                 )
 
-            (tmp_path / "songs.json").write_text(
-                json.dumps(songs_data, ensure_ascii=False), encoding="utf-8"
-            )
+            songs_json = json.dumps(songs_data, ensure_ascii=False)
 
             deck_typ = tmp_path / "deck.typ"
             shutil.copy(self._DECK_TEMPLATE, deck_typ)
 
             await loop.run_in_executor(
                 None,
-                lambda: typst.compile(str(deck_typ), output=str(output)),
+                lambda: typst.compile(
+                    str(deck_typ),
+                    output=str(output),
+                    sys_inputs={"songs": songs_json},
+                ),
             )
 
         return output
