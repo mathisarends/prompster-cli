@@ -71,19 +71,51 @@ This starts the interactive console:
 ❯ I want a 90s Eurodance deck!
 ```
 
-Just describe what kind of deck you want — Prompster takes care of the rest:
+Just describe what kind of deck you want — Prompster takes care of the rest.
 
-1. Finds matching songs on Spotify
-2. Creates a playlist in your Spotify account
-3. Generates a print-ready PDF with QR codes and card backs
+### How it works
+
+Prompster is an AI agent that guides you through two phases:
+
+**Phase 1 — Build the playlist**
+
+1. Chat about your theme, vibe, era, and favorite artists. Prompster asks follow-up questions before touching Spotify.
+2. The agent does thorough research: it searches tracks, digs into albums, checks artist discographies, and browses existing curated playlists — not just the first 10 results.
+3. You choose how many cards you want (15 / 20 / 30 / 40 / 50).
+4. Prompster creates a Spotify playlist and shares the link so you can listen.
+5. Iterate freely — remove tracks, swap songs, or start over until the playlist is exactly right.
+
+**Phase 2 — Generate cards**
+
+Once you're happy with the playlist, say the word. Prompster generates the print-ready PDF.
 
 ### Commands
 
-| Command  | Description             |
-| -------- | ----------------------- |
-| `/help`  | Show available commands |
-| `/reset` | Reset the conversation  |
-| `/exit`  | Exit Prompster          |
+| Command        | Description                         |
+| -------------- | ----------------------------------- |
+| `/help`        | Show available commands             |
+| `/model`       | Switch the AI model                 |
+| `/reset`       | Reset the conversation              |
+| `/exit`        | Exit Prompster                      |
+
+### Agent tools
+
+Behind the scenes, the agent can call these Spotify tools:
+
+| Tool                       | What it does                                      |
+| -------------------------- | ------------------------------------------------- |
+| `search_tracks`            | Search tracks by query                            |
+| `search_albums`            | Search albums by query                            |
+| `search_playlists`         | Find public playlists for inspiration             |
+| `get_album_tracks`         | List all tracks on an album                       |
+| `get_artist_top_tracks`    | Get an artist's top tracks                        |
+| `get_artist_albums`        | Browse an artist's discography                    |
+| `get_playlist_tracks`      | Read tracks from any playlist                     |
+| `create_playlist`          | Create a new Spotify playlist                     |
+| `add_tracks_to_playlist`   | Add tracks to the playlist                        |
+| `remove_tracks_from_playlist` | Remove specific tracks                         |
+| `clear_playlist`           | Wipe the playlist and start over                  |
+| `generate_hitster_cards`   | Render the final PDF deck                         |
 
 ---
 

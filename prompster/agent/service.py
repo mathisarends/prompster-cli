@@ -50,11 +50,11 @@ class Agent:
 
             for call in response.tool_calls:
                 tool = self.tools.get(call.function.name)
+                tool_args = json.loads(call.function.arguments)
                 yield ToolCallEvent(
                     tool_name=call.function.name,
-                    status=tool.status,
+                    status=tool.render_status(tool_args) if tool else None,
                 )
-                tool_args = json.loads(call.function.arguments)
                 result = await self.tools.execute(call.function.name, tool_args)
                 self._history.append(
                     ToolResultMessage(tool_call_id=call.id, content=result)

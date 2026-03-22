@@ -15,7 +15,6 @@ Hitster is a music quiz game where players guess the release year of songs. Each
 ## How to interact
 
 - Have a natural conversation first. When the user mentions a theme or artists, talk about it — ask follow-up questions, discuss the vibe, suggest directions. Do NOT immediately call any tools.
-- Only call `ask_card_count` once you and the user have agreed on a clear theme/vibe through conversation.
 - If the user writes something unrelated to deck building, just chat normally.
 - Always respond in the same language the user is writing in. Default to German.
 
@@ -26,21 +25,20 @@ The flow has two separate phases: **Playlist** and **Cards**. Do NOT jump from p
 ### Phase 1: Playlist erstellen & verfeinern
 
 1. **Chat first.** Discuss the theme, vibe, era, and artists with the user. Ask clarifying questions. Get a feel for what they want before moving on.
-2. Once the vibe is clear and the user is ready, call `ask_card_count` to get the number of cards.
-3. Summarize the config and ask for confirmation.
-4. **Do thorough research on Spotify.** Don't just call `search_tracks` once. Use multiple strategies:
+2. **Do thorough research on Spotify.** Don't just call `search_tracks` once. Use multiple strategies:
    - `search_tracks` with different queries (genre keywords, era, mood, specific artists)
    - `search_albums` to discover relevant albums, then `get_album_tracks` to explore them
    - `get_artist_top_tracks` and `get_artist_albums` to go deeper on relevant artists
    - `search_playlists` to find existing curated playlists for inspiration, then `get_playlist_tracks` to browse them
    The goal is to build a diverse, high-quality selection — not just the first 10 search results.
-5. Create a playlist with the best tracks and share the link so the user can listen.
-6. **Wait for feedback.** The user may want to:
+3. **Before creating the playlist**, call `ask_card_count` to let the user choose how many tracks the playlist should contain. Remind them that this number also determines how many cards will be in the final Hitster deck.
+4. Create a playlist with exactly that many tracks (the best picks) and share the link so the user can listen.
+5. **Wait for feedback.** The user may want to:
    - Remove specific tracks (`remove_tracks_from_playlist`)
    - Clear the entire playlist and start over (`clear_playlist`)
    - Add more or different tracks
    - Swap out tracks
-7. Iterate until the user is happy with the playlist.
+6. Iterate until the user is happy with the playlist.
 
 ### Phase 2: Karten generieren
 
@@ -50,7 +48,7 @@ Only when the user explicitly says the playlist is good / they want to generate 
 
 def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
     @tools.action(
-        description="Ask the user how many cards to generate. Returns the number as a string.",
+        description="Ask the user how many tracks the playlist should have (= number of cards in the final deck). Call this right before creating the playlist. Returns the number as a string.",
         status="Kartenanzahl abfragen",
     )
     async def ask_card_count() -> str:
@@ -63,7 +61,7 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
 
     @tools.action(
         description="Search Spotify for tracks matching a query. Returns title, artist, year and URI for each result.",
-        status="Spotify durchsuchen",
+        status=lambda args: f"Suche nach \u201e{args.get('query', '')}\u201c",
     )
     async def search_tracks(query: str, limit: int = 10) -> str:
         tracks = await client.search_tracks(query, limit=min(limit, 50))
@@ -79,7 +77,7 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
 
     @tools.action(
         description="Search Spotify for albums matching a query. Returns album name, artist, year, track count and URI.",
-        status="Alben durchsuchen",
+        status=lambda args: f"Alben suchen: \u201e{args.get('query', '')}\u201c",
     )
     async def search_albums(query: str, limit: int = 10) -> str:
         albums = await client.search_albums(query, limit=min(limit, 50))
@@ -93,7 +91,7 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
 
     @tools.action(
         description="Search Spotify for public playlists matching a query. Returns playlist name, track count and ID.",
-        status="Playlists durchsuchen",
+        status=lambda args: f"Playlists suchen: \u201e{args.get('query', '')}\u201c",
     )
     async def search_playlists(query: str, limit: int = 10) -> str:
         playlists = await client.search_playlists(query, limit=min(limit, 50))
@@ -157,17 +155,18 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
 
     @tools.action(
         description="Create a Spotify playlist for the current user. Returns the playlist ID and URL.",
-        status="Playlist erstellen",
+        status=lambda args: f"Playlist erstellen: \u201e{args.get('name', '')}\u201c",
     )
     async def create_playlist(name: str, description: str = "") -> str:
-        playlist = await client.create_playlist(name, description=description)
+        prefixed_name = "Hitster Deck: " + name
+        playlist = await client.create_playlist(prefixed_name, description=description)
         return (
             f"Created playlist '{playlist.name}' — id={playlist.id}  url={playlist.url}"
         )
 
     @tools.action(
         description="Add tracks to an existing Spotify playlist by playlist ID and a list of Spotify track URIs.",
-        status="Tracks zur Playlist hinzufügen",
+        status=lambda args: f"{len(args.get('track_uris', []))} Tracks hinzufügen",
     )
     async def add_tracks_to_playlist(playlist_id: str, track_uris: list[str]) -> str:
         await client.add_tracks_to_playlist(playlist_id, track_uris)
@@ -191,7 +190,7 @@ def _register_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
 
     @tools.action(
         description="Remove specific tracks from a Spotify playlist by playlist ID and a list of track URIs.",
-        status="Tracks aus Playlist entfernen",
+        status=lambda args: f"{len(args.get('track_uris', []))} Tracks entfernen",
     )
     async def remove_tracks_from_playlist(
         playlist_id: str, track_uris: list[str]
