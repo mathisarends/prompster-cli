@@ -1,4 +1,3 @@
-from .generate import run_generate
-from .model import run_model
+from .model import run_model_select
 
-__all__ = ["run_generate", "run_model"]
+__all__ = ["run_model_select"]

@@ -9,9 +9,11 @@ dependencies = [
     "py-llmify[all]>=0.3.0",
     "pydantic>=2.12.5",
     "python-dotenv>=1.2.2",
+    "qrcode>=8.2",
     "questionary>=2.1.1",
     "rich-click>=1.9.7",
     "spotifyify>=0.1.0",
+    "typst>=0.14.8",
 ]
 
 [project.scripts]

@@ -1,13 +1,11 @@
-import sys
+from pathlib import Path
 
 import rich_click as click
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
+from rich.console import Console
 
-from prompster.cli.commands.generate import run_generate
-from prompster.cli.commands.model import run_model
-from prompster.cli.config import MODELS, get_model
 
 BANNER = """\
 
@@ -20,69 +18,50 @@ BANNER = """\
 """
 
 COMMANDS: dict[str, str] = {
-    "/generate": "Generate a custom Hitster card deck",
-    "/model": "Switch the AI model",
-    "/help": "Show available commands",
-    "/exit": "Exit Prompster",
+    "/model":    "Switch the AI model",
+    "/help":     "Show available commands",
+    "/exit":     "Exit Prompster",
 }
 
 
-def _print_help() -> None:
-    click.echo()
-    click.echo(click.style("  Available commands:\n", fg="yellow", bold=True))
+def _print_welcome(console: Console) -> None:
+    console.print(f"[magenta]{BANNER}[/magenta]")
+
+    console.print("  [bold magenta]Prompster[/bold magenta]")
+    console.print(f"  [dim]Prompster uses AI. Check for mistakes.[/dim]  [dim]—  {'gpt-5.4-mini'}[/dim]")
+    console.print()
+
+    cwd = f"~/{Path.cwd().name}"
+    console.print(f"  [dim]{cwd}[/dim]")
+    console.print()
+
+
+def _print_help(console: Console) -> None:
+    console.print()
+    console.print("  [bold yellow]Available commands:[/bold yellow]\n")
     for cmd, desc in COMMANDS.items():
-        click.echo(
-            f"  {click.style(cmd, fg='cyan', bold=True):<30s} {desc}"
-        )
-    click.echo()
-
-
-def _print_status_bar() -> None:
-    model_id = get_model()
-    model_name = MODELS.get(model_id, {}).get("name", model_id)
-    click.echo(
-        click.style("  Model: ", fg="bright_black")
-        + click.style(model_name, fg="green", bold=True)
-        + click.style(f"  (/model to change)", fg="bright_black")
-    )
-    click.echo()
-
-
-def _make_prompt() -> HTML:
-    model_id = get_model()
-    model_name = MODELS.get(model_id, {}).get("name", model_id)
-    return HTML(
-        f'<style fg="grey">({model_name})</style> '
-        f'<style fg="magenta" bold="true">prompster</style>'
-        f'<style fg="cyan" bold="true"> > </style>'
-    )
+        console.print(f"  [bold cyan]{cmd:<20}[/bold cyan] [dim]{desc}[/dim]")
+    console.print()
 
 
 def _repl() -> None:
-    click.echo(click.style(BANNER, fg="magenta", bold=True))
-    click.echo(
-        "  "
-        + click.style("Describe a theme", fg="cyan", bold=True)
-        + click.style(" → ", fg="white")
-        + click.style("get a Hitster deck.", fg="green")
-    )
-    click.echo()
-    _print_status_bar()
-    click.echo(
-        click.style("  Type ", fg="bright_black")
-        + click.style("/help", fg="yellow")
-        + click.style(" for commands, ", fg="bright_black")
-        + click.style("Ctrl+C", fg="yellow")
-        + click.style(" to exit.\n", fg="bright_black")
-    )
+    console = Console()
+    _print_welcome(console)
 
-    session: PromptSession[str] = PromptSession(history=InMemoryHistory())
+    session: PromptSession[str] = PromptSession(
+        history=InMemoryHistory(),
+    )
 
     while True:
         try:
-            user_input = session.prompt(_make_prompt()).strip()
+            user_input = session.prompt(
+                HTML('<ansicyan><b>❯</b></ansicyan> '),
+                placeholder=HTML(
+                    '<style fg="ansidarkgray">Describe a Hitster theme…</style>'
+                ),
+            ).strip()
         except (KeyboardInterrupt, EOFError):
-            click.echo(click.style("\n  Bye!\n", fg="magenta", bold=True))
+            console.print("\n  [bold magenta]Bye![/bold magenta]\n")
             break
 
         if not user_input:
@@ -91,19 +70,16 @@ def _repl() -> None:
         cmd = user_input.lower()
 
         if cmd in ("/exit", "/quit", "/q"):
-            click.echo(click.style("\n  Bye!\n", fg="magenta", bold=True))
+            console.print("\n  [bold magenta]Bye![/bold magenta]\n")
             break
         elif cmd == "/help":
-            _print_help()
+            _print_help(console)
         elif cmd == "/model":
-            run_model()
-        elif cmd == "/generate":
-            run_generate()
+            run_model_select()
         else:
-            click.echo(
-                click.style(f"\n  Unknown command: ", fg="red")
-                + click.style(user_input, fg="white", bold=True)
-                + click.style("  — type /help for available commands.\n", fg="bright_black")
+            console.print(
+                f"\n  [red]Unknown command:[/red] [bold white]{user_input}[/bold white]"
+                f"  [dim]— type /help for available commands.[/dim]\n"
             )
 
 
