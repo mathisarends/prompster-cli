@@ -88,5 +88,4 @@ desktop.ini
 
 site/
 
-
-.spotipy_cache/
+.spotify_cache
