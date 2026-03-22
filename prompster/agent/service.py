@@ -1,21 +1,17 @@
-from __future__ import annotations
-
 import json
 import logging
 from collections.abc import AsyncIterator
 
-from llmify import BaseChatModel
+from llmify import ChatModel
 from llmify.messages import (
     AssistantMessage,
     Message,
     SystemMessage,
-    ToolCall,
     ToolResultMessage,
     UserMessage,
 )
 
-from prompster.agent.tools import ToolRegistry
-from prompster.mcp import MCPServer
+from prompster.agent.tools import Tools
 
 logger = logging.getLogger(__name__)
 
@@ -23,26 +19,16 @@ logger = logging.getLogger(__name__)
 class Agent:
     def __init__(
         self,
-        llm: BaseChatModel,
-        system_prompt: str,
-        mcp_server: MCPServer | None = None,
+        instructions: str,
+        llm: ChatModel,
     ) -> None:
         self._llm = llm
-        self._system_prompt = system_prompt
-        self._mcp_server = mcp_server
-        self._history: list[Message] = [SystemMessage(content=system_prompt)]
+        self._system_prompt = instructions
+        self._history: list[Message] = [SystemMessage(content=instructions)]
         self._mcp_ready = False
-        self.tools = ToolRegistry()
-
-    async def __aenter__(self):
-        return self
-
-    async def __aexit__(self, *_):
-        if self._mcp_server is not None:
-            await self._mcp_server.cleanup()
+        self.tools = Tools()
 
     async def stream(self, user_input: str) -> AsyncIterator[str]:
-        await self._ensure_mcp_ready()
         self._history.append(UserMessage(content=user_input))
         return self._loop()
 
@@ -70,12 +56,3 @@ class Agent:
 
     def reset(self) -> None:
         self._history = [SystemMessage(content=self._system_prompt)]
-
-    async def _ensure_mcp_ready(self) -> None:
-        if self._mcp_ready or self._mcp_server is None:
-            return
-        await self._mcp_server.connect()
-        for tool in await self._mcp_server.list_tools():
-            self.tools.register_mcp(tool, self._mcp_server)
-        self._mcp_ready = True
-

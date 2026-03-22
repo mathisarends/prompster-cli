@@ -74,8 +74,6 @@ def _repl() -> None:
             break
         elif cmd == "/help":
             _print_help(console)
-        elif cmd == "/model":
-            run_model_select()
         else:
             console.print(
                 f"\n  [red]Unknown command:[/red] [bold white]{user_input}[/bold white]"

@@ -1,5 +1,5 @@
-from .registry import ToolRegistry
+from .registry import Tools
 
 __all__ = [
-	"ToolRegistry",
+	"Tools",
 ]
