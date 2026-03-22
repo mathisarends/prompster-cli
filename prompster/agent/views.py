@@ -2,6 +2,9 @@ from dataclasses import dataclass
 
 
 @dataclass
-class AgentResult:
-    message: str
-    success: bool
+class ToolCallEvent:
+    tool_name: str
+    status: str | None
+
+
+type StreamEvent = str | ToolCallEvent

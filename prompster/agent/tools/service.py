@@ -14,6 +14,9 @@ class Tools:
     def register(self, tool: Tool) -> None:
         self._tools[tool.name] = tool
 
+    def get(self, name: str) -> Tool | None:
+        return self._tools.get(name)
+
     def tool(self, name: str, description: str, status: str | None = None) -> Callable:
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:
             self.register(

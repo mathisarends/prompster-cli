@@ -1,4 +1,4 @@
-from .registry import Tools
+from .service import Tools
 
 __all__ = [
     "Tools",

@@ -12,37 +12,27 @@ from llmify.messages import (
 )
 
 from prompster.agent.tools import Tools
+from prompster.agent.views import StreamEvent, ToolCallEvent
 
 logger = logging.getLogger(__name__)
 
 
 class Agent:
-    def __init__(
-        self,
-        instructions: str,
-        llm: ChatModel,
-    ) -> None:
+    def __init__(self, instructions: str, llm: ChatModel) -> None:
         self._llm = llm
         self._system_prompt = instructions
-        self._history: list[Message] = [SystemMessage(content=instructions)]
-        self._mcp_ready = False
         self.tools = Tools()
+        self._history: list[Message] = [SystemMessage(content=instructions)]
 
-    async def stream(self, user_input: str) -> AsyncIterator[str]:
+    async def run(self, user_input: str) -> AsyncIterator[StreamEvent]:
         self._history.append(UserMessage(content=user_input))
-        return self._loop()
-
-    async def _loop(self) -> AsyncIterator[str]:
         schema = self.tools.to_schema() or None
 
         while True:
             response = await self._llm.invoke(self._history, tools=schema)
 
             if not response.tool_calls:
-                self._history.append(AssistantMessage(content=response.completion))
-                async for chunk in self._llm.stream(self._history):
-                    yield chunk
-                return
+                break
 
             self._history.append(
                 AssistantMessage(
@@ -51,14 +41,24 @@ class Agent:
             )
 
             for call in response.tool_calls:
-                tool_args = json.loads(call.function.arguments)
-                logger.debug(
-                    "Calling tool '%s' with args: %s", call.function.name, tool_args
+                tool = self.tools.get(call.function.name)
+                yield ToolCallEvent(
+                    tool_name=call.function.name,
+                    status=tool.status,
                 )
+
+                tool_args = json.loads(call.function.arguments)
                 result = await self.tools.execute(call.function.name, tool_args)
                 self._history.append(
                     ToolResultMessage(tool_call_id=call.id, content=result)
                 )
+
+        chunks: list[str] = []
+        async for chunk in self._llm.stream(self._history, tools=schema):
+            chunks.append(chunk)
+            yield chunk
+
+        self._history.append(AssistantMessage(content="".join(chunks)))
 
     def reset(self) -> None:
         self._history = [SystemMessage(content=self._system_prompt)]
