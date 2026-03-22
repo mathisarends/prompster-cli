@@ -43,6 +43,42 @@ class RawTracksResponse(BaseModel):
     tracks: list[RawTrack | None]
 
 
+class RawSearchAlbum(BaseModel):
+    id: str | None = None
+    name: str
+    artists: list[RawArtist]
+    release_date: str
+    uri: str
+    external_urls: RawExternalUrls
+    total_tracks: int = 0
+
+
+class RawSearchAlbumsPage(BaseModel):
+    items: list[RawSearchAlbum]
+
+
+class RawSearchPlaylist(BaseModel):
+    id: str | None = None
+    name: str
+    description: str = ""
+    uri: str
+    external_urls: RawExternalUrls
+    tracks: RawPlaylistTracks | None = None
+
+
+class RawSearchPlaylistsPage(BaseModel):
+    items: list[RawSearchPlaylist | None]
+
+
+class RawArtistAlbumsPage(BaseModel):
+    items: list[RawSearchAlbum]
+    next: str | None = None
+
+
+class RawArtistTopTracksResponse(BaseModel):
+    tracks: list[RawTrack]
+
+
 class RawPlaylistTracks(BaseModel):
     total: int = 0
 
@@ -112,6 +148,57 @@ class SpotifyTrack(BaseModel):
         buf = io.BytesIO()
         img.save(buf, format="PNG")
         return buf.getvalue()
+
+
+class SpotifyAlbum(BaseModel):
+    id: str
+    name: str
+    artists: list[SpotifyArtist]
+    release_year: int
+    uri: str
+    url: str
+    total_tracks: int = 0
+
+    @classmethod
+    def from_raw(cls, raw: RawSearchAlbum) -> Self:
+        assert raw.id is not None
+        return cls(
+            id=raw.id,
+            name=raw.name,
+            artists=[
+                SpotifyArtist(id=a.id, name=a.name, uri=a.uri) for a in raw.artists
+            ],
+            release_year=int(raw.release_date.split("-")[0]),
+            uri=raw.uri,
+            url=raw.external_urls.spotify,
+            total_tracks=raw.total_tracks,
+        )
+
+    @computed_field
+    @property
+    def artist_names(self) -> str:
+        return ", ".join(a.name for a in self.artists)
+
+
+class SpotifySearchPlaylist(BaseModel):
+    id: str
+    name: str
+    description: str
+    uri: str
+    url: str
+    track_count: int = 0
+
+    @classmethod
+    def from_raw(cls, raw: RawSearchPlaylist) -> Self:
+        assert raw.id is not None
+        return cls(
+            id=raw.id,
+            name=raw.name,
+            description=raw.description,
+            uri=raw.uri,
+            url=raw.external_urls.spotify,
+            track_count=raw.tracks.total if raw.tracks else 0,
+        )
 
 
 class SpotifyPlaylist(BaseModel):

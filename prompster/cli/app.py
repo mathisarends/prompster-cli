@@ -1,40 +1,20 @@
 import asyncio
-from pathlib import Path
 
 import rich_click as click
 from dotenv import load_dotenv
 from rich.console import Console
 
-from prompster.cli.commands.repl import run_repl
+from prompster.cli.commands.repl import print_welcome, run_repl
+from prompster.llm import MODELS, default_model_key
 
 load_dotenv(override=True)
-
-BANNER = """\
-
-  ██████╗ ██████╗  ██████╗ ███╗   ███╗██████╗ ███████╗████████╗███████╗██████╗
-  ██╔══██╗██╔══██╗██╔═══██╗████╗ ████║██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗
-  ██████╔╝██████╔╝██║   ██║██╔████╔██║██████╔╝███████╗   ██║   █████╗  ██████╔╝
-  ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║██╔═══╝ ╚════██║   ██║   ██╔══╝  ██╔══██╗
-  ██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║██║     ███████║   ██║   ███████╗██║  ██║
-  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
-"""
-
-
-def _print_welcome(console: Console, model_name: str) -> None:
-    console.print(f"[magenta]{BANNER}[/magenta]")
-    console.print("  [bold magenta]Prompster[/bold magenta]")
-    console.print(
-        f"  [dim]Prompster uses AI. Check for mistakes.[/dim]  [dim]—  {model_name}[/dim]"
-    )
-    console.print()
-    cwd = f"~/{Path.cwd().name}"
-    console.print(f"  [dim]{cwd}[/dim]")
-    console.print()
 
 
 async def _start() -> None:
     console = Console()
-    _print_welcome(console, model_name="gpt-4o-mini")
+    model_key = default_model_key()
+    model_label = MODELS[model_key].label
+    print_welcome(console, model_name=model_label)
     await run_repl(console)
 
 

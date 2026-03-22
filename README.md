@@ -1,5 +1,4 @@
-
-# Prompster
+# Prompster-CLI
 
 **Create your own Hitster card deck — powered by AI and Spotify.**
 
@@ -80,11 +79,11 @@ Just describe what kind of deck you want — Prompster takes care of the rest:
 
 ### Commands
 
-| Command  | Description |
-|----------|-------------|
+| Command  | Description             |
+| -------- | ----------------------- |
 | `/help`  | Show available commands |
-| `/reset` | Reset the conversation |
-| `/exit`  | Exit Prompster |
+| `/reset` | Reset the conversation  |
+| `/exit`  | Exit Prompster          |
 
 ---
 

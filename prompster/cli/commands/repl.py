@@ -1,3 +1,7 @@
+import os
+from pathlib import Path
+
+import questionary
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
@@ -8,9 +12,21 @@ from rich.markdown import Markdown
 from prompster.agent import Agent
 from prompster.agent.views import ToolCallEvent
 from prompster.cli.commands.hister_agent import create_agent
+from prompster.llm import MODELS, create_llm, default_model_key
+
+BANNER = """\
+
+  ██████╗ ██████╗  ██████╗ ███╗   ███╗██████╗ ███████╗████████╗███████╗██████╗
+  ██╔══██╗██╔══██╗██╔═══██╗████╗ ████║██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗
+  ██████╔╝██████╔╝██║   ██║██╔████╔██║██████╔╝███████╗   ██║   █████╗  ██████╔╝
+  ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║██╔═══╝ ╚════██║   ██║   ██╔══╝  ██╔══██╗
+  ██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║██║     ███████║   ██║   ███████╗██║  ██║
+  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
+"""
 
 COMMANDS: dict[str, str] = {
     "/help": "Show available commands",
+    "/model": "Switch the LLM model",
     "/reset": "Reset the conversation history",
     "/exit": "Exit Prompster",
 }
@@ -22,6 +38,26 @@ def _print_help(console: Console) -> None:
     for cmd, desc in COMMANDS.items():
         console.print(f"  [bold cyan]{cmd:<20}[/bold cyan] [dim]{desc}[/dim]")
     console.print()
+
+
+def print_welcome(console: Console, model_name: str) -> None:
+    console.print(f"[magenta]{BANNER}[/magenta]")
+    console.print("  [bold magenta]Prompster[/bold magenta]")
+    console.print(
+        f"  [dim]Prompster uses AI. Check for mistakes.[/dim]  [dim]—  {model_name}[/dim]"
+    )
+    console.print()
+    cwd = f"~/{Path.cwd().name}"
+    console.print(f"  [dim]{cwd}[/dim]")
+    console.print()
+
+
+def _model_choices(current_key: str) -> list[questionary.Choice]:
+    choices = []
+    for key, info in MODELS.items():
+        marker = " (active)" if key == current_key else ""
+        choices.append(questionary.Choice(f"{info.label}{marker}", value=key))
+    return choices
 
 
 async def _handle_message(agent: Agent, user_input: str, console: Console) -> None:
@@ -54,7 +90,8 @@ async def _handle_message(agent: Agent, user_input: str, console: Console) -> No
 
 
 async def run_repl(console: Console) -> None:
-    agent = create_agent()
+    current_model_key = default_model_key()
+    agent = create_agent(current_model_key)
     session: PromptSession[str] = PromptSession(history=InMemoryHistory())
 
     console.print(
@@ -85,6 +122,22 @@ async def run_repl(console: Console) -> None:
             break
         elif cmd == "/help":
             _print_help(console)
+        elif cmd == "/model":
+            choice = await questionary.select(
+                "Model auswählen:",
+                choices=_model_choices(current_model_key),
+                default=current_model_key,
+            ).ask_async()
+
+            if choice is None or choice == current_model_key:
+                continue
+
+            current_model_key = choice
+            agent.llm = create_llm(current_model_key)
+            info = MODELS[current_model_key]
+            os.system("cls" if os.name == "nt" else "clear")
+            print_welcome(console, model_name=info.label)
+            console.print(f"  [bold green]Switched to {info.label}[/bold green]\n")
         elif cmd == "/reset":
             agent.reset()
             console.print("\n  [dim]Conversation reset.[/dim]\n")

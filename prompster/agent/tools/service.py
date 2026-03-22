@@ -14,7 +14,7 @@ class Tools:
     def get(self, name: str) -> Tool | None:
         return self._tools.get(name)
 
-    def tool(
+    def action(
         self, description: str, name: str | None = None, status: str | None = None
     ) -> Callable:
         def decorator(fn: Callable[..., Any]) -> Callable[..., Any]:

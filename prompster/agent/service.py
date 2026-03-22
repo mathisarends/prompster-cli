@@ -26,6 +26,14 @@ class Agent:
         self.tools = tools or Tools()
         self._history: list[Message] = [SystemMessage(content=instructions)]
 
+    @property
+    def llm(self) -> ChatModel:
+        return self._llm
+
+    @llm.setter
+    def llm(self, value: ChatModel) -> None:
+        self._llm = value
+
     async def run(self, user_input: str) -> AsyncIterator[StreamEvent]:
         self._history.append(UserMessage(content=user_input))
         schema = self.tools.to_schema() or None
@@ -37,9 +45,7 @@ class Agent:
                 break
 
             self._history.append(
-                AssistantMessage(
-                    content=response.completion, tool_calls=response.tool_calls
-                )
+                AssistantMessage(content=None, tool_calls=response.tool_calls)
             )
 
             for call in response.tool_calls:
@@ -48,7 +54,6 @@ class Agent:
                     tool_name=call.function.name,
                     status=tool.status,
                 )
-
                 tool_args = json.loads(call.function.arguments)
                 result = await self.tools.execute(call.function.name, tool_args)
                 self._history.append(
