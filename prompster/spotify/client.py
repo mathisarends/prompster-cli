@@ -111,5 +111,22 @@ class SpotifyClient:
             offset += limit
         return tracks
 
+    # TODO: Use this for iterative feedback
+    """ async def clear_playlist(self, playlist_id: str) -> None:
+        tracks = await self.get_playlist_tracks(playlist_id)
+        if not tracks:
+            return
+        uris = [t.uri for t in tracks]
+        chunks = [uris[i : i + 100] for i in range(0, len(uris), 100)]
+        for chunk in chunks:
+            await self._run(self._sp.playlist_remove_all_occurrences_of_items, playlist_id, chunk)
+
+    async def remove_tracks_from_playlist(
+        self, playlist_id: str, track_uris: Sequence[str]
+    ) -> None:
+        chunks = [list(track_uris[i : i + 100]) for i in range(0, len(track_uris), 100)]
+        for chunk in chunks:
+            await self._run(self._sp.playlist_remove_all_occurrences_of_items, playlist_id, chunk) """
+
     async def _run(self, fn, *args, **kwargs):
         return await asyncio.to_thread(fn, *args, **kwargs)
