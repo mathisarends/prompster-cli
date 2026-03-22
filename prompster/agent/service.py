@@ -18,10 +18,12 @@ logger = logging.getLogger(__name__)
 
 
 class Agent:
-    def __init__(self, instructions: str, llm: ChatModel) -> None:
+    def __init__(
+        self, instructions: str, llm: ChatModel, tools: Tools | None = None
+    ) -> None:
         self._llm = llm
         self._system_prompt = instructions
-        self.tools = Tools()
+        self.tools = tools or Tools()
         self._history: list[Message] = [SystemMessage(content=instructions)]
 
     async def run(self, user_input: str) -> AsyncIterator[StreamEvent]:

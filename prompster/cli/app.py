@@ -9,7 +9,7 @@ from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
 from rich.console import Console
 
-from prompster.agent import Agent
+from prompster.agent import Agent, Tools
 from prompster.agent.views import ToolCallEvent
 
 load_dotenv(override=True)
@@ -64,10 +64,20 @@ async def _handle_message(agent: Agent, user_input: str, console: Console) -> No
 async def _repl() -> None:
     console = Console()
 
+    tools = Tools()
+
+    @tools.tool(name="get_current_time", description="Returns the current time.")
+    async def get_current_time() -> str:
+        from datetime import datetime
+
+        return datetime.now().strftime("%H:%M:%S")
+
     llm = ChatOpenAI(model="gpt-4o-mini")
+
     agent = Agent(
         instructions="You are a helpful assistant.",
         llm=llm,
+        tools=tools,
     )
 
     _print_welcome(console, model_name="gpt-4o-mini")
