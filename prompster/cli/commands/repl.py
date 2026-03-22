@@ -24,13 +24,19 @@ def _print_help(console: Console) -> None:
 
 
 async def _handle_message(agent: Agent, user_input: str, console: Console) -> None:
+    from rich.markdown import Markdown
+
     console.print()
+    chunks: list[str] = []
+
     async for event in agent.run(user_input):
         if isinstance(event, ToolCallEvent):
             console.print(f"[dim]⚙ {event.status or event.tool_name}…[/dim]")
         else:
-            console.print(event, end="")
-    console.print("\n")
+            chunks.append(event)
+
+    console.print(Markdown("".join(chunks)))
+    console.print()
 
 
 def _build_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
@@ -80,6 +86,14 @@ def _build_spotify_tools(tools: Tools, client: SpotifyClient) -> None:
         ]
         return "\n".join(lines)
 
+    @tools.tool(
+        description="Generate Hitster cards as a PDF for the given Spotify playlist. Returns the path to the generated PDF.",
+        status="Karten generieren…",
+    )
+    async def generate_hitster_cards(playlist_id: str) -> str:
+        # mock — später echte PDF-Generierung mit QR-Einbindung basierend auf den Playlist-Tracks
+        return "Cards generated: /tmp/hitster-deck-mock.pdf"
+
 
 async def run_repl(console: Console) -> None:
     tools = Tools()
@@ -90,15 +104,32 @@ async def run_repl(console: Console) -> None:
 
     llm = ChatOpenAI(model="gpt-4o-mini")
 
+    INSTRUCTIONS = """\
+    You are Prompster, a creative assistant that helps users generate custom Hitster card decks.
+
+    Hitster is a music quiz game where players guess the release year of songs. Each card has a song title, artist, year, and a QR code linking to the song on Spotify.
+
+    Before generating any cards, you MUST gather the following information from the user through natural conversation — ask for missing details one at a time, don't overwhelm them with a form:
+
+    1. **Theme / Vibe** – What kind of music? (e.g. "90s pop", "deutsche Hits", "party bangers", "chill indie")
+    2. **Difficulty** – Easy (well-known hits), Medium (mix), Hard (deep cuts & B-sides)
+    3. **Mode** – Party (upbeat, crowd-pleasers) or Chill (relaxed, more niche)
+    4. **Number of cards** – How many cards should the deck have? (default: 30, max: 50)
+
+    Once you have all four, summarize the deck config back to the user and ask for confirmation before generating.
+
+    When generating cards:
+    1. Use the Spotify tools to find matching tracks. Prefer tracks where the release year is clearly identifiable. Aim for variety in years unless the theme implies a specific era.
+    2. Once all tracks are collected, call `create_spotify_playlist` with the track URIs and a fitting playlist name.
+    3. Include the returned playlist link prominently in your response as a clickable Markdown link so the user can open it directly in Spotify.
+
+    Always respond in the same language the user is writing in.
+    """
+
     agent = Agent(
-        instructions=(
-            "You are Prompster, a Hitster deck assistant. "
-            "Help the user build thematic Spotify playlists for Hitster card games. "
-            "Search for fitting tracks, propose a selection, create the playlist once confirmed, "
-            "and summarise the final deck with title, artist and year per card."
-        ),
-        llm=llm,
+        instructions=INSTRUCTIONS,
         tools=tools,
+        llm=llm,
     )
 
     session: PromptSession[str] = PromptSession(history=InMemoryHistory())
