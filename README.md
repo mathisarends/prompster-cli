@@ -30,7 +30,7 @@ https://github.com/user-attachments/assets/80b00c85-b50e-471c-a7ce-d9794aa01bc8
 > Requires [Python 3.14+](https://www.python.org/downloads/) and [uv](https://docs.astral.sh/uv/getting-started/installation/)
 ```bash
 # Clone the repository
-git clone https://github.com/dein-user/hitster-cli.git
+git clone https://github.com/mathisarends/prompster-cli.git
 cd hitster-cli
 
 # Install
