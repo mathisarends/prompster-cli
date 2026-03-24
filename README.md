@@ -1,8 +1,14 @@
 # Prompster-CLI
 
-**Create your own Hitster card deck — powered by AI and Spotify.**
+**Your AI agent for custom Hitster card decks.**
 
-Prompster is a CLI tool that helps you build custom Hitster card decks. Just describe the vibe or theme you want, and Prompster finds matching songs on Spotify, generates QR codes, and builds a print-ready PDF.
+Prompster is a conversational AI agent that builds Hitster card decks with you — 
+not for you. Describe a vibe, an era, a genre, or just a feeling. The agent asks 
+follow-up questions, searches Spotify, digs through discographies and curated 
+playlists, and iterates with you until the deck is exactly right. Then it generates 
+the print-ready PDF.
+
+https://github.com/user-attachments/assets/fda4c0c5-80cd-450d-a492-51fb7dca2d9d
 
 ---
 
@@ -14,7 +20,7 @@ Prompster is a CLI tool that helps you build custom Hitster card decks. Just des
   <img src="static/page_back.png" width="380" alt="Back side — song, artist and year">
 </p>
 
-**Front:** Each card has a QR code that links directly to the song on Spotify.
+**Front:** Each card has a QR code that links directly to the song on Spotify.  
 **Back:** Artist, song title, and release year — in colorful designs.
 
 Print double-sided, cut them out, and start playing.
