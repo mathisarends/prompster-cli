@@ -16,10 +16,8 @@ the print-ready PDF.
   <img src="static/page_back.png" width="380" alt="Back side — song, artist and year">
 </p>
 
-**Front:** Each card has a QR code that links directly to the song on Spotify.  
-**Back:** Artist, song title, and release year — in colorful designs.
-
-Print double-sided, cut them out, and start playing.
+**Front:** QR code → Spotify link.  
+**Back:** Artist, title, year.
 
 ---
 
@@ -30,7 +28,6 @@ https://github.com/user-attachments/assets/fda4c0c5-80cd-450d-a492-51fb7dca2d9d
 ## Installation
 
 > Requires [Python 3.14+](https://www.python.org/downloads/) and [uv](https://docs.astral.sh/uv/getting-started/installation/)
-
 ```bash
 # Clone the repository
 git clone https://github.com/dein-user/hitster-cli.git
@@ -47,7 +44,6 @@ Prompster needs access to the Spotify API to search for songs and create playlis
 1. Create an app in the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
 2. Set the redirect URI to: `http://localhost:8888/callback`
 3. Create a `.env` file in the project folder:
-
 ```env
 SPOTIFY_CLIENT_ID=your_client_id
 SPOTIFY_CLIENT_SECRET=your_client_secret
@@ -57,24 +53,8 @@ SPOTIFY_REDIRECT_URI=http://localhost:8888/callback
 ---
 
 ## Usage
-
 ```bash
 prompster
-```
-
-This starts the interactive console:
-
-```
-  ██████╗ ██████╗  ██████╗ ███╗   ███╗██████╗ ███████╗████████╗███████╗██████╗
-  ██╔══██╗██╔══██╗██╔═══██╗████╗ ████║██╔══██╗██╔════╝╚══██╔══╝██╔════╝██╔══██╗
-  ██████╔╝██████╔╝██║   ██║██╔████╔██║██████╔╝███████╗   ██║   █████╗  ██████╔╝
-  ██╔═══╝ ██╔══██╗██║   ██║██║╚██╔╝██║██╔═══╝ ╚════██║   ██║   ██╔══╝  ██╔══██╗
-  ██║     ██║  ██║╚██████╔╝██║ ╚═╝ ██║██║     ███████║   ██║   ███████╗██║  ██║
-  ╚═╝     ╚═╝  ╚═╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚══════╝   ╚═╝   ╚══════╝╚═╝  ╚═╝
-
-  Tell me your vibe — I'll build the deck.
-
-❯ I want a 90s Eurodance deck!
 ```
 
 Just describe what kind of deck you want — Prompster takes care of the rest.
@@ -97,31 +77,29 @@ Once you're happy with the playlist, say the word. Prompster generates the print
 
 ### Commands
 
-| Command        | Description                         |
-| -------------- | ----------------------------------- |
-| `/help`        | Show available commands             |
-| `/model`       | Switch the AI model                 |
-| `/reset`       | Reset the conversation              |
-| `/exit`        | Exit Prompster                      |
+| Command  | Description              |
+| -------- | ------------------------ |
+| `/help`  | Show available commands  |
+| `/model` | Switch the AI model      |
+| `/reset` | Reset the conversation   |
+| `/exit`  | Exit Prompster           |
 
 ### Agent tools
 
-Behind the scenes, the agent can call these Spotify tools:
-
-| Tool                       | What it does                                      |
-| -------------------------- | ------------------------------------------------- |
-| `search_tracks`            | Search tracks by query                            |
-| `search_albums`            | Search albums by query                            |
-| `search_playlists`         | Find public playlists for inspiration             |
-| `get_album_tracks`         | List all tracks on an album                       |
-| `get_artist_top_tracks`    | Get an artist's top tracks                        |
-| `get_artist_albums`        | Browse an artist's discography                    |
-| `get_playlist_tracks`      | Read tracks from any playlist                     |
-| `create_playlist`          | Create a new Spotify playlist                     |
-| `add_tracks_to_playlist`   | Add tracks to the playlist                        |
-| `remove_tracks_from_playlist` | Remove specific tracks                         |
-| `clear_playlist`           | Wipe the playlist and start over                  |
-| `generate_hitster_cards`   | Render the final PDF deck                         |
+| Tool                          | What it does                               |
+| ----------------------------- | ------------------------------------------ |
+| `search_tracks`               | Search tracks by query                     |
+| `search_albums`               | Search albums by query                     |
+| `search_playlists`            | Find public playlists for inspiration      |
+| `get_album_tracks`            | List all tracks on an album                |
+| `get_artist_top_tracks`       | Get an artist's top tracks                 |
+| `get_artist_albums`           | Browse an artist's discography             |
+| `get_playlist_tracks`         | Read tracks from any playlist              |
+| `create_playlist`             | Create a new Spotify playlist              |
+| `add_tracks_to_playlist`      | Add tracks to the playlist                 |
+| `remove_tracks_from_playlist` | Remove specific tracks                     |
+| `clear_playlist`              | Wipe the playlist and start over           |
+| `generate_hitster_cards`      | Render the final PDF deck                  |
 
 ---
 
@@ -131,3 +109,4 @@ Behind the scenes, the agent can call these Spotify tools:
 2. Print **double-sided** (flip on short edge)
 3. Cut the cards along the crop marks
 4. Done — have fun playing!
+```
