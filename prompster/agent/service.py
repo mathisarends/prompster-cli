@@ -21,25 +21,17 @@ class Agent:
     def __init__(
         self, instructions: str, llm: ChatModel, tools: Tools | None = None
     ) -> None:
-        self._llm = llm
+        self.llm = llm
         self._system_prompt = instructions
         self.tools = tools or Tools()
         self._history: list[Message] = [SystemMessage(content=instructions)]
-
-    @property
-    def llm(self) -> ChatModel:
-        return self._llm
-
-    @llm.setter
-    def llm(self, value: ChatModel) -> None:
-        self._llm = value
 
     async def run(self, user_input: str) -> AsyncIterator[StreamEvent]:
         self._history.append(UserMessage(content=user_input))
         schema = self.tools.to_schema() or None
 
         while True:
-            response = await self._llm.invoke(self._history, tools=schema)
+            response = await self.llm.invoke(self._history, tools=schema)
 
             if not response.tool_calls:
                 content = response.completion or ""

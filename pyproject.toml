@@ -15,6 +15,7 @@ dependencies = [
     "questionary>=2.1.1",
     "rich-click>=1.9.7",
     "spotipy>=2.26.0",
+    "transcriptify[mic]>=0.1.0",
     "typst>=0.14.8",
 ]
 

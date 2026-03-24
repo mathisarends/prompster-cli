@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"from prompster.cli.voice import push_to_talk; print\\(''OK''\\)\")",
+      "Bash(python -c \"from prompster.cli.commands.repl import run_repl; print\\(''OK''\\)\")",
+      "Bash(python -c \":*)"
+    ]
+  }
+}

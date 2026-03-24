@@ -5,6 +5,7 @@ import questionary
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
+from prompt_toolkit.key_binding import KeyBindings
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
@@ -12,6 +13,7 @@ from rich.markdown import Markdown
 from prompster.agent import Agent
 from prompster.agent.views import ToolCallEvent
 from prompster.cli.commands.hister_agent import create_agent
+from prompster.cli.voice import push_to_talk
 from prompster.llm import MODELS, create_llm, default_model_key
 
 BANNER = """\
@@ -27,6 +29,7 @@ BANNER = """\
 COMMANDS: dict[str, str] = {
     "/help": "Show available commands",
     "/model": "Switch the LLM model",
+    "/voice": "Push-to-talk \u2014 record & transcribe (also Ctrl+R)",
     "/reset": "Reset the conversation history",
     "/exit": "Exit Prompster",
 }
@@ -89,10 +92,32 @@ async def _handle_message(agent: Agent, user_input: str, console: Console) -> No
     console.print()
 
 
+async def _voice_flow(console: Console) -> str | None:
+    try:
+        return await push_to_talk(console)
+    except Exception as exc:
+        console.print(f"\n  [bold red]Voice error:[/bold red] {exc}\n")
+        return None
+
+
 async def run_repl(console: Console) -> None:
     current_model_key = default_model_key()
     agent = create_agent(current_model_key)
-    session: PromptSession[str] = PromptSession(history=InMemoryHistory())
+
+    # Ctrl+R triggers push-to-talk
+    voice_requested: list[bool] = [False]
+    kb = KeyBindings()
+
+    @kb.add("c-r", eager=True)  # Ctrl+R for voice recording
+    def _voice_trigger(event: object) -> None:
+        voice_requested[0] = True
+        buf = event.current_buffer  # type: ignore[attr-defined]
+        buf.text = ""
+        buf.validate_and_handle()
+
+    session: PromptSession[str] = PromptSession(
+        history=InMemoryHistory(), key_bindings=kb
+    )
 
     console.print(
         "  Tell me your [bold magenta]vibe[/bold magenta] — I'll build the deck.\n"
@@ -104,13 +129,29 @@ async def run_repl(console: Console) -> None:
                 await session.prompt_async(
                     HTML("<ansicyan><b>❯</b></ansicyan> "),
                     placeholder=HTML(
-                        '<style fg="ansidarkgray">Start typing...</style>'
+                        '<style fg="ansidarkgray">Start typing... (Ctrl+R for voice)</style>'
                     ),
                 )
             ).strip()
         except (KeyboardInterrupt, EOFError):
             console.print("\n  [bold magenta]Bye![/bold magenta]\n")
             break
+
+        # Handle Ctrl+Space voice trigger
+        if voice_requested[0]:
+            voice_requested[0] = False
+            text = await _voice_flow(console)
+            if not text:
+                continue
+            # Pre-fill prompt so user can review/edit before sending
+            user_input = (
+                await session.prompt_async(
+                    HTML("<ansicyan><b>❯</b></ansicyan> "),
+                    default=text,
+                )
+            ).strip()
+            if not user_input:
+                continue
 
         if not user_input:
             continue
@@ -122,6 +163,19 @@ async def run_repl(console: Console) -> None:
             break
         elif cmd == "/help":
             _print_help(console)
+        elif cmd in ("/voice", "/v"):
+            text = await _voice_flow(console)
+            if not text:
+                continue
+            user_input = (
+                await session.prompt_async(
+                    HTML("<ansicyan><b>❯</b></ansicyan> "),
+                    default=text,
+                )
+            ).strip()
+            if not user_input:
+                continue
+            await _handle_message(agent, user_input, console)
         elif cmd == "/model":
             choice = await questionary.select(
                 "Model auswählen:",
