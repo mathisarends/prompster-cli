@@ -8,10 +8,6 @@ follow-up questions, searches Spotify, digs through discographies and curated
 playlists, and iterates with you until the deck is exactly right. Then it generates 
 the print-ready PDF.
 
-https://github.com/user-attachments/assets/fda4c0c5-80cd-450d-a492-51fb7dca2d9d
-
----
-
 ## What the cards look like
 
 <p align="center">
@@ -24,6 +20,10 @@ https://github.com/user-attachments/assets/fda4c0c5-80cd-450d-a492-51fb7dca2d9d
 **Back:** Artist, song title, and release year — in colorful designs.
 
 Print double-sided, cut them out, and start playing.
+
+---
+
+https://github.com/user-attachments/assets/fda4c0c5-80cd-450d-a492-51fb7dca2d9d
 
 ---
 
