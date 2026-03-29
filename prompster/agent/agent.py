@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Annotated
 
-from agentory import Agent, Tools
+from agentory import Agent, Inject, Tools
 
 from prompster.export import DeckRenderer, TrackCard
 from prompster.llm import create_llm, default_model_key
@@ -14,12 +15,12 @@ _SYSTEM_PROMPT = (Path(__file__).parent / "system_prompt.md").read_text(
 class HitsterAgent:
     def __init__(self, model: str | None = None) -> None:
         self._tools = Tools()
+        self._tools.provide(SpotifyClient(SpotifyCredentials()), DeckRenderer())
         self._register_tools()
         self._agent = Agent(
             instructions=_SYSTEM_PROMPT,
             tools=self._tools,
             llm=create_llm(model or default_model_key()),
-            context=(SpotifyClient(SpotifyCredentials()), DeckRenderer()),
         )
 
     def reset(self) -> None:
@@ -36,7 +37,7 @@ class HitsterAgent:
             status=lambda args: f"Suche nach \u201e{args.get('query', '')}\u201c",
         )
         async def search_tracks(
-            spotify: SpotifyClient, query: str, limit: int = 10
+            spotify: Annotated[SpotifyClient, Inject], query: str, limit: int = 10
         ) -> str:
             tracks = await spotify.search_tracks(query, limit=min(limit, 50))
             if not tracks:
@@ -51,7 +52,7 @@ class HitsterAgent:
             status=lambda args: f"Alben suchen: \u201e{args.get('query', '')}\u201c",
         )
         async def search_albums(
-            spotify: SpotifyClient, query: str, limit: int = 10
+            spotify: Annotated[SpotifyClient, Inject], query: str, limit: int = 10
         ) -> str:
             albums = await spotify.search_albums(query, limit=min(limit, 50))
             if not albums:
@@ -66,7 +67,7 @@ class HitsterAgent:
             status=lambda args: f"Playlists suchen: \u201e{args.get('query', '')}\u201c",
         )
         async def search_playlists(
-            spotify: SpotifyClient, query: str, limit: int = 10
+            spotify: Annotated[SpotifyClient, Inject], query: str, limit: int = 10
         ) -> str:
             playlists = await spotify.search_playlists(query, limit=min(limit, 50))
             if not playlists:
@@ -81,7 +82,7 @@ class HitsterAgent:
             status="Künstler-Alben laden",
         )
         async def get_artist_albums(
-            spotify: SpotifyClient,
+            spotify: Annotated[SpotifyClient, Inject],
             artist_id: str,
             include_groups: str = "album,single",
             limit: int = 20,
@@ -101,7 +102,9 @@ class HitsterAgent:
             status="Top-Tracks laden",
         )
         async def get_artist_top_tracks(
-            spotify: SpotifyClient, artist_id: str, country: str = "DE"
+            spotify: Annotated[SpotifyClient, Inject],
+            artist_id: str,
+            country: str = "DE",
         ) -> str:
             tracks = await spotify.get_artist_top_tracks(artist_id, country=country)
             if not tracks:
@@ -115,7 +118,9 @@ class HitsterAgent:
             description="Get all tracks of an album by album URI or ID. Returns title, artist, year and URI.",
             status="Album-Tracks laden",
         )
-        async def get_album_tracks(spotify: SpotifyClient, album_id: str) -> str:
+        async def get_album_tracks(
+            spotify: Annotated[SpotifyClient, Inject], album_id: str
+        ) -> str:
             tracks = await spotify.get_album_tracks(album_id)
             if not tracks:
                 return "No tracks found."
@@ -129,7 +134,7 @@ class HitsterAgent:
             status=lambda args: f"Playlist erstellen: \u201e{args.get('name', '')}\u201c",
         )
         async def create_playlist(
-            spotify: SpotifyClient, name: str, description: str = ""
+            spotify: Annotated[SpotifyClient, Inject], name: str, description: str = ""
         ) -> str:
             prefixed_name = "Hitster Deck: " + name
             playlist = await spotify.create_playlist(
@@ -142,7 +147,9 @@ class HitsterAgent:
             status=lambda args: f"{len(args.get('track_uris', []))} Tracks hinzufügen",
         )
         async def add_tracks_to_playlist(
-            spotify: SpotifyClient, playlist_id: str, track_uris: list[str]
+            spotify: Annotated[SpotifyClient, Inject],
+            playlist_id: str,
+            track_uris: list[str],
         ) -> str:
             invalid = [u for u in track_uris if not u.startswith("spotify:track:")]
             if invalid:
@@ -155,7 +162,9 @@ class HitsterAgent:
             description="Get all tracks of an existing Spotify playlist. Returns title, artist, year and URI per track.",
             status="Playlist-Tracks laden",
         )
-        async def get_playlist_tracks(spotify: SpotifyClient, playlist_id: str) -> str:
+        async def get_playlist_tracks(
+            spotify: Annotated[SpotifyClient, Inject], playlist_id: str
+        ) -> str:
             tracks = await spotify.get_playlist_tracks(playlist_id)
             if not tracks:
                 return "Playlist is empty."
@@ -169,7 +178,9 @@ class HitsterAgent:
             status=lambda args: f"{len(args.get('track_uris', []))} Tracks entfernen",
         )
         async def remove_tracks_from_playlist(
-            spotify: SpotifyClient, playlist_id: str, track_uris: list[str]
+            spotify: Annotated[SpotifyClient, Inject],
+            playlist_id: str,
+            track_uris: list[str],
         ) -> str:
             await spotify.remove_tracks_from_playlist(playlist_id, track_uris)
             return f"Removed {len(track_uris)} track(s) from playlist {playlist_id}."
@@ -178,7 +189,9 @@ class HitsterAgent:
             description="Remove all tracks from a Spotify playlist (clear it completely).",
             status="Playlist leeren",
         )
-        async def clear_playlist(spotify: SpotifyClient, playlist_id: str) -> str:
+        async def clear_playlist(
+            spotify: Annotated[SpotifyClient, Inject], playlist_id: str
+        ) -> str:
             await spotify.clear_playlist(playlist_id)
             return f"Playlist {playlist_id} cleared."
 
@@ -187,7 +200,9 @@ class HitsterAgent:
             status="Karten generieren…",
         )
         async def generate_cards(
-            spotify: SpotifyClient, deck_renderer: DeckRenderer, playlist_id: str
+            spotify: Annotated[SpotifyClient, Inject],
+            deck_renderer: Annotated[DeckRenderer, Inject],
+            playlist_id: str,
         ) -> str:
             tracks = await spotify.get_playlist_tracks(playlist_id)
             if not tracks:
