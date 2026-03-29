@@ -4,14 +4,14 @@ requires-python = ">=3.14"
 
 [[package]]
 name = "agentory"
-version = "0.1.1"
+version = "0.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "py-llmify" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/97/cc/2e3acc642cdb680cbe3f40585da334c59dedc62e3a0e1721e9bcf2fc547d/agentory-0.1.1.tar.gz", hash = "sha256:a61b7fca7849304aeb393baaf9795c9570e579ed480508771b0c9c472d129f22", size = 17374, upload-time = "2026-03-29T13:01:23.484Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/59/40/42dbaef880d95acd50369d5c220df603d6098910697abf96738277ea98f4/agentory-0.1.2.tar.gz", hash = "sha256:d5d90018153183ae53774eaa772d937971fdfb17e455f779f6ee9dd6524a5855", size = 17925, upload-time = "2026-03-29T13:58:30.265Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/17/d3/94385ec86c615cbcf6ccd96277adee54687c44e73e47a573e84d9f1902f6/agentory-0.1.1-py3-none-any.whl", hash = "sha256:414c79ebec5e305b640b7afc466ab9193cc909794e08d0c6f5e79724ab6b64d0", size = 13697, upload-time = "2026-03-29T13:01:22.081Z" },
+    { url = "https://files.pythonhosted.org/packages/f6/32/17119bc74a23a44efa7cfa01c292cb5842c1c0df55d738847e862ca5370b/agentory-0.1.2-py3-none-any.whl", hash = "sha256:66ba733132eb4ddfdcd2ecf4d4410829b622e0468d4ce545085b872517da9cef", size = 14121, upload-time = "2026-03-29T13:58:28.566Z" },
 ]
 
 [package.optional-dependencies]
@@ -430,7 +430,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "agentory", extras = ["openai"], specifier = ">=0.1.1" },
+    { name = "agentory", extras = ["openai"], specifier = ">=0.1.2" },
     { name = "click", specifier = ">=8.3.1" },
     { name = "pydantic", specifier = ">=2.12.5" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },

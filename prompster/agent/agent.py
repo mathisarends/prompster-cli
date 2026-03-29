@@ -19,7 +19,7 @@ class HitsterAgent:
             instructions=_SYSTEM_PROMPT,
             tools=self._tools,
             llm=create_llm(model or default_model_key()),
-            context=SpotifyClient(SpotifyCredentials()),
+            context=(SpotifyClient(SpotifyCredentials()), DeckRenderer()),
         )
 
     def reset(self) -> None:
@@ -186,7 +186,9 @@ class HitsterAgent:
             description="Generate Hitster cards as a PDF for the given Spotify playlist. Returns the path to the generated PDF.",
             status="Karten generieren…",
         )
-        async def generate_cards(spotify: SpotifyClient, playlist_id: str) -> str:
+        async def generate_cards(
+            spotify: SpotifyClient, deck_renderer: DeckRenderer, playlist_id: str
+        ) -> str:
             tracks = await spotify.get_playlist_tracks(playlist_id)
             if not tracks:
                 return "Playlist is empty — no cards generated."
@@ -201,7 +203,6 @@ class HitsterAgent:
             ]
             output = Path.cwd() / "output" / "hitster-deck.pdf"
             output.parent.mkdir(exist_ok=True)
-            deck_renderer = DeckRenderer()
             await deck_renderer.render(cards, output)
             return f"Cards generated: {output}  ({len(cards)} cards)"
 
