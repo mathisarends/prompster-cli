@@ -2,10 +2,10 @@
 
 **Your AI agent for custom Hitster card decks.**
 
-Prompster is a conversational AI agent that builds Hitster card decks with you — 
-not for you. Describe a vibe, an era, a genre, or just a feeling. The agent asks 
-follow-up questions, searches Spotify, digs through discographies and curated 
-playlists, and iterates with you until the deck is exactly right. Then it generates 
+Prompster is a conversational AI agent that builds Hitster card decks with you —
+not for you. Describe a vibe, an era, a genre, or just a feeling. The agent asks
+follow-up questions, searches Spotify, digs through discographies and curated
+playlists, and iterates with you until the deck is exactly right. Then it generates
 the print-ready PDF.
 
 ## What the cards look like
@@ -16,7 +16,7 @@ the print-ready PDF.
   <img src="static/page_back.png" width="380" alt="Back side — song, artist and year">
 </p>
 
-**Front:** Each card has a QR code that links directly to the song on Spotify.  
+**Front:** Each card has a QR code that links directly to the song on Spotify.
 **Back:** Artist, song title, and release year — in colorful designs.
 
 Print double-sided, cut them out, and start playing.
@@ -52,14 +52,18 @@ Prompster needs access to the Spotify API to search for songs and create playlis
 SPOTIFY_CLIENT_ID=your_client_id
 SPOTIFY_CLIENT_SECRET=your_client_secret
 SPOTIFY_REDIRECT_URI=http://localhost:8888/callback
+
+OPENAI_API_KEY=your_openai_api_key
 ```
+
+> An OpenAI API key is required — get one at [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
 
 ---
 
 ## Usage
 
 ```bash
-prompster
+uv run prompster
 ```
 
 This starts the interactive console:
@@ -97,31 +101,31 @@ Once you're happy with the playlist, say the word. Prompster generates the print
 
 ### Commands
 
-| Command        | Description                         |
-| -------------- | ----------------------------------- |
-| `/help`        | Show available commands             |
-| `/model`       | Switch the AI model                 |
-| `/reset`       | Reset the conversation              |
-| `/exit`        | Exit Prompster                      |
+| Command  | Description             |
+| -------- | ----------------------- |
+| `/help`  | Show available commands |
+| `/model` | Switch the AI model     |
+| `/reset` | Reset the conversation  |
+| `/exit`  | Exit Prompster          |
 
 ### Agent tools
 
 Behind the scenes, the agent can call these Spotify tools:
 
-| Tool                       | What it does                                      |
-| -------------------------- | ------------------------------------------------- |
-| `search_tracks`            | Search tracks by query                            |
-| `search_albums`            | Search albums by query                            |
-| `search_playlists`         | Find public playlists for inspiration             |
-| `get_album_tracks`         | List all tracks on an album                       |
-| `get_artist_top_tracks`    | Get an artist's top tracks                        |
-| `get_artist_albums`        | Browse an artist's discography                    |
-| `get_playlist_tracks`      | Read tracks from any playlist                     |
-| `create_playlist`          | Create a new Spotify playlist                     |
-| `add_tracks_to_playlist`   | Add tracks to the playlist                        |
-| `remove_tracks_from_playlist` | Remove specific tracks                         |
-| `clear_playlist`           | Wipe the playlist and start over                  |
-| `generate_hitster_cards`   | Render the final PDF deck                         |
+| Tool                          | What it does                          |
+| ----------------------------- | ------------------------------------- |
+| `search_tracks`               | Search tracks by query                |
+| `search_albums`               | Search albums by query                |
+| `search_playlists`            | Find public playlists for inspiration |
+| `get_album_tracks`            | List all tracks on an album           |
+| `get_artist_top_tracks`       | Get an artist's top tracks            |
+| `get_artist_albums`           | Browse an artist's discography        |
+| `get_playlist_tracks`         | Read tracks from any playlist         |
+| `create_playlist`             | Create a new Spotify playlist         |
+| `add_tracks_to_playlist`      | Add tracks to the playlist            |
+| `remove_tracks_from_playlist` | Remove specific tracks                |
+| `clear_playlist`              | Wipe the playlist and start over      |
+| `generate_hitster_cards`      | Render the final PDF deck             |
 
 ---
 
