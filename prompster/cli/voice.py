@@ -25,19 +25,16 @@ async def push_to_talk(console: Console) -> str | None:
             while not stop.is_set():
                 elapsed = int(loop.time() - start)
                 m, s = divmod(elapsed, 60)
-                bar_len = min(elapsed, 20)
-                bar = "\u2588" * bar_len + "\u2591" * (20 - bar_len)
                 live.update(
                     Text(
-                        f"  \u25cf REC  {m}:{s:02d}  {bar}  \u2014 Enter to stop",
+                        f"  \u25cf REC  {m}:{s:02d}  \u2014 Enter to stop",
                         style="bold red",
                     )
                 )
                 await asyncio.sleep(0.25)
 
-        # Stop the mic stream so record() finishes collecting
         await mic._queue.put(None)
-        audio = await mic.record(seconds=0)  # collects everything already buffered
+        audio = await mic.record(seconds=0)
 
     await enter_task
 
@@ -45,8 +42,13 @@ async def push_to_talk(console: Console) -> str | None:
         console.print("  [dim]No audio captured.[/dim]\n")
         return None
 
-    console.print("  [dim]Transcribing\u2026[/dim]")
-    whisper = OpenAIWhisper()
-    result = await whisper.transcribe(audio)
-    console.print()
+    with Live(
+        Text("  Transcribing\u2026", style="dim"),
+        console=console,
+        refresh_per_second=4,
+        transient=True,
+    ):
+        whisper = OpenAIWhisper()
+        result = await whisper.transcribe(audio)
+
     return result.text

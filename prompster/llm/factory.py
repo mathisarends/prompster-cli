@@ -3,7 +3,7 @@ from typing import Literal
 
 from llmify import ChatModel
 
-Provider = Literal["openai", "anthropic"]
+Provider = Literal["openai"]
 
 
 @dataclass(frozen=True)
@@ -26,24 +26,6 @@ MODELS: dict[str, _ModelInfo] = {
         label="GPT-5.4 Mini",
         provider="openai",
         model_id="gpt-5.4-mini",
-    ),
-    "claude-opus": _ModelInfo(
-        key="claude-opus",
-        label="Claude Opus 4.6",
-        provider="anthropic",
-        model_id="claude-opus-4-6",
-    ),
-    "claude-sonnet": _ModelInfo(
-        key="claude-sonnet",
-        label="Claude Sonnet 4.6",
-        provider="anthropic",
-        model_id="claude-sonnet-4-6",
-    ),
-    "claude-haiku": _ModelInfo(
-        key="claude-haiku",
-        label="Claude Haiku 4.5",
-        provider="anthropic",
-        model_id="claude-haiku-4-5-20251001",
     ),
 }
 

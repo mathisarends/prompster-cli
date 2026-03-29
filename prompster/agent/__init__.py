@@ -1,4 +1,5 @@
-from .service import Agent
-from .tools import Tools
+from .agent import HitsterAgent
 
-__all__ = ["Agent", "Tools"]
+__all__ = [
+    "HitsterAgent",
+]

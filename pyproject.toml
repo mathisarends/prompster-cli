@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
+    "agentory[openai]>=0.1.1",
     "click>=8.3.1",
-    "py-llmify[all]>=0.3.0",
     "pydantic>=2.12.5",
     "pydantic-settings>=2.13.1",
     "pypdf>=6.9.1",

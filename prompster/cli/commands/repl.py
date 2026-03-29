@@ -1,7 +1,7 @@
-import os
 from pathlib import Path
 
 import questionary
+from agentory import Agent, ToolCallEvent
 from prompt_toolkit import PromptSession
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.history import InMemoryHistory
@@ -10,9 +10,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
 
-from prompster.agent import Agent
-from prompster.agent.views import ToolCallEvent
-from prompster.cli.commands.hister_agent import create_agent
+from prompster.agent import HitsterAgent
 from prompster.cli.voice import push_to_talk
 from prompster.llm import MODELS, create_llm, default_model_key
 
@@ -102,7 +100,7 @@ async def _voice_flow(console: Console) -> str | None:
 
 async def run_repl(console: Console) -> None:
     current_model_key = default_model_key()
-    agent = create_agent(current_model_key)
+    agent = HitsterAgent(current_model_key)
 
     # Ctrl+R triggers push-to-talk
     voice_requested: list[bool] = [False]
@@ -187,9 +185,9 @@ async def run_repl(console: Console) -> None:
                 continue
 
             current_model_key = choice
-            agent.llm = create_llm(current_model_key)
+            agent._agent.llm = create_llm(current_model_key)
             info = MODELS[current_model_key]
-            os.system("cls" if os.name == "nt" else "clear")
+            console.clear()
             print_welcome(console, model_name=info.label)
             console.print(f"  [bold green]Switched to {info.label}[/bold green]\n")
         elif cmd == "/reset":

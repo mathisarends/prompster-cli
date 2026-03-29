@@ -4,18 +4,10 @@ import rich_click as click
 from dotenv import load_dotenv
 from rich.console import Console
 
-from prompster.cli.commands.repl import print_welcome, run_repl
+from prompster.cli.commands import print_welcome, run_repl
 from prompster.llm import MODELS, default_model_key
 
 load_dotenv(override=True)
-
-
-async def _start() -> None:
-    console = Console()
-    model_key = default_model_key()
-    model_label = MODELS[model_key].label
-    print_welcome(console, model_name=model_label)
-    await run_repl(console)
 
 
 @click.rich_config(
@@ -34,4 +26,6 @@ async def _start() -> None:
 @click.command()
 def cli() -> None:
     """Prompster — Generate unique Hitster card decks with AI."""
-    asyncio.run(_start())
+    console = Console()
+    print_welcome(console, model_name=MODELS[default_model_key()].label)
+    asyncio.run(run_repl(console))
